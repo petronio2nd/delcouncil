@@ -1,0 +1,7 @@
+{
+  "name": "orquestra",
+  "version": "0.1.0",
+  "description": "Painel ao vivo da orquestração: a sessão, as filhas que ela abriu (título, modelo, estado pelo emoji, há quanto tempo) e as execuções e revisões da dupla em %TEMP%\\dupla, com o que espera o usuário no topo.",
+  "author": { "name": "petronio2nd" },
+  "types": "./types/index.d.ts"
+}

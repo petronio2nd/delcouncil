@@ -1,0 +1,12 @@
+node_modules/
+*.log
+*.bak
+.DS_Store
+Thumbs.db
+# estado da maquina: nunca versionar
+fontes.json
+fontes.json.lock
+*.nivel.json
+*.rota.json
+.env
+.env.*

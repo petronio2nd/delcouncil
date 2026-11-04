@@ -1,0 +1,14 @@
+{
+  "versao": 2,
+  "capacidades": {
+    "N1": { "ordem": 1, "esforco": "low", "escalado": "medium", "familias": ["haiku", "luna", "flash-lite"] },
+    "N2": { "ordem": 2, "esforco": "low", "escalado": "medium", "familias": ["sonnet", "terra", "flash"] },
+    "N3": { "ordem": 3, "esforco": "medium", "escalado": "high", "familias": ["opus", "sol"] }
+  },
+  "revisao": { "capacidade": "N3", "familias": ["astra", "fable", "argon"], "L1": "low", "L2": "medium" },
+  "codeReview": { "comum": "low", "riscoElevado": "medium", "semCodigo": "dispensado" },
+  "limites": { "tentativasPorFamilia": 1, "correcoesPorFatia": 2, "rodadasCruzadasPorFatia": 2, "maxUltraAutomatico": false, "astraExecutor": false, "gptExtra": false },
+  "indisponivel": "preservar capacidade e risco; sem parecer, etapa pendente",
+  "sessao": "modelo e esforco fixos durante a fatia; escalada em nova tentativa; contexto enxuto e sessao nova por fatia",
+  "modelos": "sempre a versao mais nova de cada familia"
+}
