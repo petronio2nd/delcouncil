@@ -10,7 +10,7 @@ O delcouncil é um conjunto de **skills, scripts e plugins escritos pelo autor**
 | Antigravity / `agy` | Google | motor para modelos Gemini e Claude/GPT pela cota Google | produto comercial |
 | Codex | OpenAI | outro ambiente que lê as skills; família GPT como executor/revisor | produto comercial |
 | [OpenRouter](https://openrouter.ai) | OpenRouter | fonte opcional para árbitro, **travada por padrão no ambiente do autor** | serviço comercial |
-| [ai-memory](https://github.com/akitaonrails/ai-memory) | Fabio Akita (akitaonrails) | memória longa opcional que o revisor pode consultar | confira no repositório |
+| [ai-memory](https://github.com/akitaonrails/ai-memory) | Fabio Akita (akitaonrails) | memória longa opcional que o revisor pode consultar | MIT |
 
 Ideias e vocabulário:
 
