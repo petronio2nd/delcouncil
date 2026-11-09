@@ -205,6 +205,24 @@ export function montarCotas(retratos: readonly Retrato[], max: readonly JanelaMa
   }
 }
 
+// As cinco cotas que o painel sempre mostra, na ordem fixa: a semanal de cada fonte. Sem leitura no último
+// retrato, a linha sai "não lida" em vez de sumir.
+const FIXAS: ReadonlyArray<{ casa: (fonte: string) => boolean; nome: string }> = [
+  { casa: f => f === 'Claude Max', nome: 'Claude Max' },
+  { casa: f => f.startsWith('ChatGPT'), nome: 'ChatGPT (OpenCode/Codex)' },
+  { casa: f => f.includes('Gemini Models'), nome: 'agy Gemini Models' },
+  { casa: f => f.includes('Argon'), nome: 'agy Gemini 4 Argon' },
+  { casa: f => f.startsWith('API Anthropic'), nome: 'API Anthropic (opencode)' },
+]
+
+export function cotasFixas(c: Cotas): Cota[] {
+  return FIXAS.map(({ casa, nome }) =>
+    c.cotas.find(x => casa(x.fonte) && x.horas === 168) ?? {
+      fonte: nome, limite: '', usado: null, volta: null, horas: 168, folga: null,
+      fechadas: [], media: undefined, mediaDe: 0, mediaAprox: false,
+    })
+}
+
 // --- Formatação comum ao painel e ao /orquestra cotas texto ---
 
 export function nomeLimite(l: Pick<Leitura, 'limite' | 'horas'>): string {

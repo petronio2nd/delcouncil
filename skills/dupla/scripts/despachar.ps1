@@ -338,10 +338,15 @@ if ($Executor -eq 'openrouter') {
         $null = $_ -match $padrao; $v = "$($Matches[1])$($Matches[2])" -replace '-', '.'; if ($v -notmatch '\.') { $v += '.0' }
         [pscustomobject]@{ id = $_; base = $_ -replace '-(low|medium|high)$', ''; v = [version]$v }
       } | Sort-Object v -Descending | Select-Object -First 1
-      if ($base) { break }
+      if (-not $base) { continue }
+      $esforcoFamilia = if ($esforcoExplicito) { $Esforco } else { Get-EsforcoModelo -Capacidade (Get-CapacidadeModelo $base.id) }
+      # Familia sem variante que atenda o piso (ex.: Flash-Lite sem sufixo com piso medium) cede a vez a
+      # proxima da lista, em vez de encerrar o despacho (2026-11-07, N1 subiu para medium).
+      try { $null = Select-VarianteAgy $base.id $esforcoFamilia $lista; $Esforco = $esforcoFamilia; break }
+      catch [ArgumentException] { Sai 2 $_.Exception.Message }
+      catch { $base = $null }
     }
-    if (-not $base) { Sai 3 "agy sem $($familias -join '/') na lista de modelos ($($lista -join ', ')): $proximo" }
-    if (-not $esforcoExplicito) { $Esforco = Get-EsforcoModelo -Capacidade (Get-CapacidadeModelo $base.id) }
+    if (-not $base) { Sai 3 "agy sem $($familias -join '/') que atenda o esforço na lista de modelos ($($lista -join ', ')): $proximo" }
     $modeloUsado = $base.id
   }
   try { $modeloUsado = Select-VarianteAgy $modeloUsado $Esforco $lista -PermitirSemSufixo:([bool]$Modelo -and -not $esforcoExplicito) }

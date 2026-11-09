@@ -37,7 +37,8 @@ Do usuário, e só isto:
 
 Seu, sem perguntar: commit e push de cada entrega conferida, direto no `main` (usuário, 2026-10-19: "não
 quero que pergunte mais, simplesmente sempre commit e push"; regra de projeto que diz "commit só quando o
-usuário pedir" não vale mais); orquestrar ou não; abrir filha, em que modelo e raciocínio; despachar aos
+usuário pedir" não vale mais; nos repositórios de time, commit e push vão na branch de trabalho, e PR e merge
+só com pedido do usuário, seção Git do `CLAUDE.md` global); orquestrar ou não; abrir filha, em que modelo e raciocínio; despachar aos
 executores (agy, opencode); mandar à revisão cruzada e em que nível (`dupla`, seção 0); subagentes em qualquer nível; grupo na
 barra lateral. Diga em uma linha o que decidiu e siga. Errar barato e corrigir é melhor do que parar o usuário.
 
@@ -104,6 +105,11 @@ que o trabalho seja menor.
 - **Por área de arquivos, nunca por item da lista.** Cada fatia é um conjunto de arquivos ou uma pasta, e
   um escritor só mexe nele: filhas e executores trabalham na pasta real do projeto, sem worktree, e dois
   escritores no mesmo arquivo se sobrescrevem.
+- **Escritores em paralelo no mesmo repositório: branch ou worktree por subagente** (usuário, 2026-11-06). Cada
+  um commita na sua branch, sem push; a orquestradora confere o diff e os testes, faz a revisão cruzada e
+  junta na `main`. Worktree não traz o que o git ignora: fatia que depende desses arquivos fica na pasta
+  real, em série. Quem trabalha sozinho continua direto no `main`. Em repositório de time, a base e o destino seguem o
+  fluxo do repositório, nunca `main` ou `develop` sem pedido do usuário.
 - **Leitura paralela, escrita serial.** Varredura, busca e inventário correm em paralelo com qualquer
   coisa; duas escritas só se os arquivos forem disjuntos.
 - **Passo serial no meio quebra a fatia.** Se B consome o que A produz, A primeiro, conferida, depois B.
@@ -143,26 +149,33 @@ que o trabalho seja menor.
 Use **N1/N2/N3**, como no suporte de TI, para a capacidade necessária (usuário, 2026-10-31; tabela
 refeita pelo usuário em 2026-11-03):
 
+**Esforços: um lugar só** (usuário, 2026-11-07). Os valores vivem no perfil em vigor em
+[politica-modelos.json](politica-modelos.json); os perfis (`economia`, `folga`) ficam em
+[perfis-esforco.json](perfis-esforco.json). `scripts/esforcos.ps1` mostra o perfil e, com `-Perfil <nome>`,
+troca, testa, faz commit e push. O texto das skills não repete números: "esforço N2" ou "esforço L1" é o
+valor do perfil. O `rotear_tarefa`, o gêmeo e os scripts releem o JSON a cada chamada, então as sessões
+abertas pegam a troca na próxima fatia; o que a sessão leu antes no texto não vale como valor.
+
 **Execução**
 
 | Capacidade | Modelos | Esforço inicial | Escalada | Uso |
 |---|---|---|---|---|
-| **N1 — simples** | Haiku, Luna, Gemini 3.5 Flash-Lite | `low` | `medium` | leitura, busca, triagem e tarefa simples com aceite claro |
-| **N2 — comum** | Sonnet, Terra, Gemini 3.8 Flash | `low` | `medium` | implementação comum, diagnóstico e integração delimitada |
-| **N3 — difícil** | Opus, Sol | `medium` | `high` | arquitetura, desenho, migração, problema difícil, orquestração |
+| **N1 — simples** | Haiku, Luna, Gemini 3.5 Flash-Lite | esforço N1 | escalado N1 | leitura, busca, triagem e tarefa simples com aceite claro |
+| **N2 — comum** | Sonnet, Terra, Gemini 3.8 Flash | esforço N2 | escalado N2 | implementação comum, diagnóstico e integração delimitada |
+| **N3 — difícil** | Opus, Sol | esforço N3 | escalado N3 | arquitetura, desenho, migração, problema difícil, orquestração |
 
 **Revisão** (só Astra, Fable e Argon, todos N3; eles não executam nem orquestram)
 
 | Camada | Regra |
 |---|---|
-| `/code-review` | obrigatório para código: `low` no comum; `medium` em risco elevado |
+| `/code-review` | obrigatório para código: `codeReview.comum` no comum; `codeReview.riscoElevado` em risco elevado |
 | Revisão cruzada L0 | dispensada; texto sem código também dispensa o `/code-review` |
-| Revisão cruzada L1 — comum | Astra, Fable ou Argon em `low` |
-| Revisão cruzada L2 — alto risco | Astra, Fable ou Argon em `medium` |
+| Revisão cruzada L1 — comum | Astra, Fable ou Argon no esforço L1 |
+| Revisão cruzada L2 — alto risco | Astra, Fable ou Argon no esforço L2 |
 | GPT extra (`gpt-review.ps1`) | desativado |
 | Repetições | no máximo duas rodadas cruzadas por fatia; nada de revisão extra obrigatória redundante, mantendo testes e revisão proporcional ao risco; contexto enxuto e sessão nova por fatia, sem reler históricos enormes |
 
-Esforço é outra dimensão da capacidade: Terra medium continua N2, Opus high continua N3. A dificuldade
+Esforço é outra dimensão da capacidade: Terra escalado continua N2, Opus escalado continua N3. A dificuldade
 conhecida permite entrar direto no nível adequado; escale um degrau por falha real, em nova tentativa,
 sem gastar chamadas só para passar pelos três. Reserva mantém a capacidade exigida ou sobe; falta de
 cota não autoriza baixar o nível. O `L0/L1/L2` da `dupla` mede risco da entrega, não capacidade do
@@ -176,11 +189,11 @@ Exceção: a lista do OpenRouter (Muse), fixa e trocada à mão.
 
 | Papel | Quem | Modelo | Ferramenta | Serve para |
 |---|---|---|---|---|
-| 1 | Orquestradora | Opus em `medium` (N3); `high` só quando ela mesma desenha ou decide algo difícil. Igual ou acima do que as filhas vão usar (o app ignora `model` mais caro que o da mãe) | esta sessão | ler, planejar, fatiar, despachar, conferir o diff e julgar a saída dos testes, `/code-review`, STATUS.md, commit e push, arquivar |
-| 2 | Sessão filha no app | Haiku em `low`: varredura, busca, inventário, só leitura. Sonnet em `low`: código fechado com testes, script, ajuste de escopo claro. Opus em `medium`: conversor, desenho, migração, decisão técnica | `start_session` | fatia que rende mais separada (seção 2), com arquivos próprios; ela própria usa o nível 3 |
-| 3 | Subagente da sessão (mãe ou filha) | Haiku ou Sonnet em `low` | `Agent` (`Explore`, `general-purpose`) | leituras, buscas e conferência mecânica (seção 5); nunca altera código, banco nem dado do projeto (só saída temporária) |
+| 1 | Orquestradora | Opus no esforço N3; escalado N3 só quando ela mesma desenha ou decide algo difícil. Igual ou acima do que as filhas vão usar (o app ignora `model` mais caro que o da mãe) | esta sessão | ler, planejar, fatiar, despachar, conferir o diff e julgar a saída dos testes, `/code-review`, STATUS.md, commit e push, arquivar |
+| 2 | Sessão filha no app | Haiku no esforço N1: varredura, busca, inventário, só leitura. Sonnet no esforço N2: código fechado com testes, script, ajuste de escopo claro. Opus no esforço N3: conversor, desenho, migração, decisão técnica | `start_session` | fatia que rende mais separada (seção 2), com arquivos próprios; ela própria usa o nível 3 |
+| 3 | Subagente da sessão (mãe ou filha) | Haiku ou Sonnet no esforço N1 ou N2 | `Agent` (`Explore`, `general-purpose`) | leituras, buscas e conferência mecânica (seção 5); nunca altera código, banco nem dado do projeto (só saída temporária) |
 | 4 | Executor | agy pelo `-Nivel` (Flash-Lite ou Flash, Claude Sonnet, Claude Opus, na cota Google): não roda comando, só lê e escreve; opencode com GPT (`openai/`: Luna, Terra, Sol; assinatura do ChatGPT) e opencode com Claude (`anthropic/`: Haiku, Sonnet, Opus, no crédito mensal da API): rodam comando e teste. Quem vai primeiro sai da fila pela folga (abaixo). Nunca o OpenRouter. O script escolhe o modelo e confere a cota e o crédito: `dupla`, seção 6 | `despachar.ps1 -Executor agy\|opencode` | tarefa fechada e testável, sem Docker nem rede |
-| 5 | Revisor e árbitro | Outra família que o autor, pelo `revisar.ps1 -Autor claude\|gpt\|gemini` (Claude → Gemini Argon; GPT → Gemini Argon, para poupar o Max; Gemini → GPT Astra; reserva Fable); esforço pelo nível L1 `low` / L2 `medium` calculado do risco; árbitro a terceira família, pela tabela da `dupla`, seção 3b (Muse Wonder pelo OpenRouter só quando a terceira é o GPT e o ChatGPT zerou): `dupla`, seções 0, 2 e 3b | `revisar.ps1` | revisão cruzada antes do commit, quando os critérios da `dupla` mandam |
+| 5 | Revisor e árbitro | Outra família que o autor, pelo `revisar.ps1 -Autor claude\|gpt\|gemini` (Claude → GPT Astra, reserva Gemini Argon; GPT → Gemini Argon, para poupar o Max; Gemini → GPT Astra; reserva Fable); esforço L1 ou L2 pelo nível calculado do risco; árbitro a terceira família, pela tabela da `dupla`, seção 3b (Muse Wonder pelo OpenRouter só quando a terceira é o GPT e o ChatGPT zerou): `dupla`, seções 0, 2 e 3b | `revisar.ps1` | revisão cruzada antes do commit, quando os critérios da `dupla` mandam |
 
 Cota: filha, sempre no app do Claude Code, gasta a cota do Max (nunca o crédito da API). O GPT
 (executor Luna/Terra/Sol, revisor Astra) gasta a assinatura do ChatGPT pelo OpenCode, uma janela
@@ -196,10 +209,10 @@ de 5 h quase no fim vai para o fim. Entre as fontes que servem ao papel, vai a p
 
 | Papel | Quem pode | Claude do Max |
 |---|---|---|
-| Orquestrar, decidir com o usuário, conferir | — | sempre (Opus `medium`) |
+| Orquestrar, decidir com o usuário, conferir | — | sempre (Opus, esforço N3) |
 | Código que roda comando ou teste | opencode com GPT (Luna, Terra, Sol); opencode com Claude (crédito da API) | só se os dois falharem |
 | Código sem comando, varredura, documento | agy (Flash-Lite ou Flash; Claude Sonnet ou Opus do grupo Claude/GPT); opencode com GPT | não |
-| Plano grande, desenho | N3 (`-Nivel dificil`): GPT Sol `medium` pelo opencode, ou Claude Opus `medium` pelo agy ou pelo crédito da API. Astra, Fable e Argon ficam só para revisar: o `despachar.ps1` os recusa | a orquestradora decide no fim |
+| Plano grande, desenho | N3 (`-Nivel dificil`): GPT Sol pelo opencode, ou Claude Opus pelo agy ou pelo crédito da API, sempre no esforço N3. Astra, Fable e Argon ficam só para revisar: o `despachar.ps1` os recusa | a orquestradora decide no fim |
 | Revisão e árbitro | `dupla`, seções 2 e 3b | só Fable, quando é a família que sobra |
 
 Trocar de plano muda a cota e a fila se ajusta sozinha; só mude esta tabela se uma fonte entrar ou sair. Com a cota ou o crédito
@@ -210,8 +223,8 @@ escrita exige conferir o diff antes de entregar a próxima tentativa. Sem parece
 app OpenAI. O agy é motor. O OpenCode também fornece o CLI usado pelos scripts da dupla.
 Use somente as APIs disponíveis em cada um. A integração e seus limites estão em
 [references/harness.md](references/harness.md). Política comum em
-[politica-modelos.json](politica-modelos.json): N1 low (escalado medium), N2 low (medium), N3 medium
-(high). Na revisão, Astra, Fable e Argon usam `low` em L1 e `medium` em L2 ou com `-Topo`. Economia
+[politica-modelos.json](politica-modelos.json), no perfil em vigor (`scripts/esforcos.ps1`). Na revisão, Astra,
+Fable e Argon usam o esforço L1, e o L2 em L2 ou com `-Topo`. Economia
 conserva capacidade e piso da revisão. A IA classifica cada fatia; código resolve o modelo e esforço.
 Uma skill não altera o seletor do app.
 
@@ -259,7 +272,7 @@ projeto):
 ```
 initiation: "user_asked", context: "fresh", use_worktree: false,
 cwd: "<pasta do projeto>", model: "<id de Haiku, Sonnet ou Opus; omitido = o da mãe>",
-effort: "<low para Haiku e Sonnet, medium para Opus; um degrau acima só em nova tentativa; omitido = o da mãe>",
+effort: "<esforço N1/N2 para Haiku e Sonnet, N3 para Opus, pelo perfil em vigor; um degrau acima só em nova tentativa; omitido = o da mãe>",
 title: "⚙️ <assunto>: <ação>", name: "<projeto>-<assunto>", prompt: "<brief da seção 3>",
 background: "<o projeto, o que já foi decidido, como esta fatia encaixa>"
 ```
@@ -287,11 +300,11 @@ Vale na mãe e na filha.
 
 **Conferência mecânica** (rodar script ou teste, contar linhas, consultar o banco, comparar números com
 resultado esperado já conhecido): `Agent(subagent_type: "general-purpose", model: "haiku", effort:
-"low", prompt)`. Peça antes o `request_directory` da pasta. O brief traz os comandos exatos e a tabela
+<esforço N1>, prompt)`. Peça antes o `request_directory` da pasta. O brief traz os comandos exatos e a tabela
 do esperado, e manda: "devolva uma tabela com o comando, o código de saída e o trecho cru de cada número ou
 diferença (saída longa vai para arquivo temporário, cite o caminho); liste toda diferença sem
 classificá-la; não altere código, script nem banco; sem dado pessoal na resposta". Se a consulta ainda
-precisa ser descoberta (coluna, sintaxe), use Sonnet `medium`, que ajusta só `SELECT` de leitura. Vale com 3
+precisa ser descoberta (coluna, sintaxe), use Sonnet no esforço N2, que ajusta só `SELECT` de leitura. Vale com 3
 ou mais comandos, saída longa ou risco de erro; abaixo disso, rode direto. Aceite com números conhecidos no
 plano vira script (OK/FALHOU por critério, sai com 1 se algum falhar), escrito por quem não é a autora do
 código conferido, com o diff lido pela mãe uma vez: depois, conferir é uma chamada, sem modelo.
@@ -332,7 +345,7 @@ CONTEXTO não se reenvia igual: mude o contexto, o modelo ou o escopo antes.
 - saída 1 (falha) ou teste que não passa: `git status` e `git diff` do que ele gravou. Se outra sessão mexeu
   nos mesmos arquivos (seção 7), preserve o estado e resolva a colisão. Preserve também alterações
   úteis da tentativa anterior; não descarte a árvore inteira. **Suba um degrau na mesma fonte** enquanto ela tem folga (`-Nivel simples` → `comum` → `dificil`, ou
-  `-Esforco` acima: Terra low → Terra medium, Sol medium → Sol high); só sem degrau ou sem folga vai ao próximo da fila. A nova
+  `-Esforco` acima: do esforço ao escalado do nível); só sem degrau ou sem folga vai ao próximo da fila. A nova
   tentativa leva a tarefa e, no fim, uma seção **Tentativa anterior falhou** com só o trecho do erro e do
   teste que falhou (comando, saída, arquivo:linha), nunca o relatório nem o raciocínio do anterior: assim
   ele não herda o caminho errado e a tarefa fica curta. (Ideia tirada da alethe, `cascade`, 2026-10-25.)
@@ -370,8 +383,8 @@ revisão) é um mod, fora desta skill.
    mesma só 1 ou 2 comandos curtos; se um falhar ou pedir um 3º, pare e delegue. Antes de decisão
    irreversível (apagar, commit de risco), leia a saída crua, não o resumo. Nada segue adiante sem essa
    conferência.
-2. **`/code-review` no diff**, sempre que a entrega tem código (`dupla`, seção 0b: `low` no comum,
-   `medium` em risco elevado, sem `--fix`, você julga cada achado). Vale também para o que um executor
+2. **`/code-review` no diff**, sempre que a entrega tem código (`dupla`, seção 0b: `codeReview.comum` no comum,
+   `codeReview.riscoElevado` em risco elevado, sem `--fix`, você julga cada achado). Vale também para o que um executor
    fez. A filha que escreve código roda na própria entrega antes de devolver e põe o resultado no
    relatório; a mãe roda de novo só se o diff mudou depois disso. Texto sem código dispensa. Não
    substitui conferência nem dupla.
@@ -386,7 +399,8 @@ revisão) é um mod, fora desta skill.
 4. **STATUS.md do projeto.** Feito (com quem fez: "sessão filha no Sonnet; code-review sem achados;
    L1 GPT Astra low aprovou sem achados"), Decisões, Pendências, Revisão cruzada.
 5. **Commit e push**, sem pedir 👍 (seção 1). O que passou pelos passos 1 a 4 vai para o `main` com
-   push; só os seus arquivos, por caminho. A mensagem de commit conta o que cada nível fez.
+   push (em repositório de time, para a branch de trabalho); só os seus arquivos, por caminho. A mensagem de commit
+   conta o que cada nível fez.
 6. **Arquivar a filha** com 🗄️ e subir o contador no nome da mãe (`⚙️ fatias 3/5`, seção 5). A
    orquestradora continua até a última fatia.
 

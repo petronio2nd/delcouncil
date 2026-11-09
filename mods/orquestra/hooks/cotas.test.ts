@@ -3,6 +3,7 @@ import { expect, test } from 'claude-code/testing'
 import {
   barra,
   cotasEmTexto,
+  cotasFixas,
   dataCurta,
   folga,
   fraseCota,
@@ -250,4 +251,19 @@ test('fraseCota: barra com a marca do tempo e a frase', async () => {
   expect(semVolta.frase).toBe('Cota semanal quase toda livre: usou 1%.')
   expect(semVolta.barra?.map(b => b.texto).join('')).toBe('▱▱▱▱▱▱▱▱▱▱')
   expect(fraseCota(cota({ usado: null }), agora, 0)).toEqual({ frase: 'Cota não lida.' })
+})
+
+test('cotasFixas: sempre as cinco semanais, na ordem; a que falta sai não lida', () => {
+  const c = montarCotas(lerHistorico(retrato(AGORA - H, [
+    chatgpt(4, AGORA + 140 * H),
+    { fonte: 'agy Gemini Models', limite: 'Weekly Limit Remaining', usado: 2.6, volta: AGORA + 60 * H, horas: 168, folga: 50 },
+    { fonte: 'agy Gemini Models', limite: 'Five Hour Limit Remaining', usado: 9, volta: AGORA + 2 * H, horas: 5, folga: 40 },
+  ])), [], [], AGORA)
+  const f = cotasFixas(c)
+  expect(f.map(x => x.fonte)).toEqual(['Claude Max', 'ChatGPT (OpenCode/Codex)', 'agy Gemini Models', 'agy Gemini 4 Argon', 'API Anthropic (opencode)'])
+  expect(f.map(x => x.horas)).toEqual([168, 168, 168, 168, 168])
+  expect(f[2]!.usado).toBe(2.6)
+  expect(f[0]!.usado).toBeNull()
+  expect(f[3]!.usado).toBeNull()
+  expect(linhasCota(f[3]!, AGORA).rotulo).toEqual({ texto: 'não lido' })
 })

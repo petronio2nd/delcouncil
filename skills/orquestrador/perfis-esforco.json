@@ -1,0 +1,15 @@
+{
+  "_leia": "Perfis de esforco que o usuário alterna conforme a folga da semana (usuário, 2026-11-07). Trocar com scripts/esforcos.ps1 -Perfil <nome>; nunca editar politica-modelos.json a mao para isso.",
+  "economia": {
+    "descricao": "cota apertada: o piso de 2026-11-03",
+    "N1": ["low", "medium"], "N2": ["low", "medium"], "N3": ["medium", "high"],
+    "L1": "low", "L2": "medium",
+    "codeReview": ["low", "medium"]
+  },
+  "folga": {
+    "descricao": "semana leve: um degrau acima (2026-11-07)",
+    "N1": ["medium", "high"], "N2": ["medium", "high"], "N3": ["high", "xhigh"],
+    "L1": "medium", "L2": "high",
+    "codeReview": ["medium", "high"]
+  }
+}

@@ -9,12 +9,15 @@ function Confere($condicao, [string]$nome) {
   if (-not $condicao) { throw "FALHOU: $nome" }
   $script:casos++
 }
+# Esforcos vem do perfil em vigor (esforcos.ps1 troca o perfil; usuário, 2026-11-07).
+$P = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\..\orquestrador\politica-modelos.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $parecerValido = "## Veredito`naprovado — casos conferidos`n`n## Achados`nnenhum achado`n`n## Não conferido`n- rede não testada`n"
 foreach ($autorTeste in 'claude', 'gpt', 'gemini') {
   $rotasTeste = @(Get-RotasRevisao -Autor $autorTeste)
   Confere ($rotasTeste.Count -eq 2 -and $autorTeste -notin $rotasTeste) "duas famílias distintas do autor $autorTeste"
 }
 Confere ((@(Get-RotasRevisao gpt) -join ',') -eq 'gemini,claude') 'Argon → Claude para autor GPT'
+Confere ((@(Get-RotasRevisao claude) -join ',') -eq 'gpt,gemini') 'Astra → Argon para autor Claude'
 Confere ((@(Get-RotasRevisao claude gpt) -join ',') -eq 'gpt,gemini') 'preferência explícita preserva reserva'
 Confere ((@(Get-RotasRevisao codex) -join ',') -eq 'gemini,claude') 'alias codex'
 Confere ((@(Get-RotasRevisao -Autor gpt -SemReserva) -join ',') -eq 'gemini') 'opção sem reserva'
@@ -162,10 +165,10 @@ $recorteTexto = [IO.File]::ReadAllText("$recorteTeste.diff.md")
 Confere ($LASTEXITCODE -eq 0 -and $recorteTexto.Contains('## Pedido') -and $recorteTexto.Contains('## Critério de aceite')) 'recorte offline leva objetivo e aceite técnicos'
 
 # Previa do Fable deve usar o piso proprio, inclusive em -Topo com L0, sem mexer na saida.
-# Piso unico de revisao (usuário, 2026-11-03): low em L1, medium em L2 ou -Topo, tambem para o Fable.
+# Piso unico de revisao: L1 da politica, L2 em L2 ou -Topo, tambem para o Fable.
 foreach ($cenario in @(
-  @{nivel='L1';topo=$false;esforco='low'}, @{nivel='L2';topo=$false;esforco='medium'},
-  @{nivel='L1';topo=$true;esforco='medium'}, @{nivel='L0';topo=$true;esforco='medium'}
+  @{nivel='L1';topo=$false;esforco=$P.revisao.L1}, @{nivel='L2';topo=$false;esforco=$P.revisao.L2},
+  @{nivel='L1';topo=$true;esforco=$P.revisao.L2}, @{nivel='L0';topo=$true;esforco=$P.revisao.L2}
 )) {
   $argsPrevia = @('-NoProfile','-ExecutionPolicy','Bypass','-File',(Join-Path $PSScriptRoot 'revisar.ps1'),
     '-Autor','gpt','-Revisor','claude','-Nivel',$cenario.nivel,'-SoNivel','-Pasta',$raizTeste,'-Pacote',$pacoteTeste,'-Saida',$saidaTeste)
@@ -387,14 +390,17 @@ New-Item -ItemType Directory (Join-Path $scriptsMock 'perfil-mock\.config\openco
 [IO.File]::WriteAllText((Join-Path $scriptsMock 'perfil-mock\.config\opencode\plugins\segredos.ts'), '// plugin sintetico offline', $utf8)
 $agyMock = @'
 $modo = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'modo.txt'))
-if ($modo -notin 'agy-nu','agy-trava-tardia','agy-exit3') { Write-Output 'permissao sintetica sem deny'; exit 0 }
+if ($modo -notin 'agy-nu','agy-trava-tardia','agy-exit3','agy-simples') { Write-Output 'permissao sintetica sem deny'; exit 0 }
 if ($args -contains '/permissions') {
   $cfg = Join-Path $env:USERPROFILE '.gemini\antigravity-cli\settings.json'
   $config = [IO.File]::ReadAllText($cfg) | ConvertFrom-Json
   foreach ($regra in $config.permissions.deny) { Write-Output "deny $regra" }
   exit 0
 }
-if ($args -contains 'models') { Write-Output 'claude-opus-5-5'; exit 0 }
+if ($args -contains 'models') {
+  if ($modo -eq 'agy-simples') { 'gemini-4-flash-lite', 'gemini-4-flash-low', 'gemini-4-flash-medium' | Write-Output; exit 0 }
+  Write-Output 'claude-opus-5-5'; exit 0
+}
 if ($modo -eq 'agy-exit3') { [Console]::Error.WriteLine('falha sintetica de processo, sem cota'); exit 3 }
 [IO.File]::WriteAllText((Join-Path $PSScriptRoot 'agy-inferencia.txt'), 'execucao local simulada')
 Write-Output 'STATUS: FEITO'
@@ -430,8 +436,19 @@ $saidaAgyNu = Join-Path $raizTeste 'executor agy nu.md'
 & $shellTeste -NoProfile -ExecutionPolicy Bypass -File (Join-Path $scriptsMock 'despachar.ps1') -Executor agy -Modelo claude-opus-5-5 -Pasta $repoDiffTeste -Tarefa $pacoteTeste -Saida $saidaAgyNu -Conjuntos nenhuma | Out-Null
 $codigoAgyNu = $LASTEXITCODE
 $nivelAgyNu = [IO.File]::ReadAllText("$saidaAgyNu.nivel.json") | ConvertFrom-Json
-Confere ($codigoAgyNu -eq 0 -and $nivelAgyNu.esforcoSelecionado -eq 'nao-informado' -and $nivelAgyNu.esforcoPedido -eq 'medium' -and (Test-Path -LiteralPath (Join-Path $scriptsMock 'agy-inferencia.txt'))) 'entrada normal agy aceita ID nu explicito sem alegar esforco confirmado'
+Confere ($codigoAgyNu -eq 0 -and $nivelAgyNu.esforcoSelecionado -eq 'nao-informado' -and $nivelAgyNu.esforcoPedido -eq $P.capacidades.N3.esforco -and (Test-Path -LiteralPath (Join-Path $scriptsMock 'agy-inferencia.txt'))) 'entrada normal agy aceita ID nu explicito sem alegar esforco confirmado'
 Remove-Item -LiteralPath (Join-Path $scriptsMock 'agy-inferencia.txt')
+# N1 em medium (2026-11-07): Flash-Lite sem variante cede a vez ao Flash medium, sem encerrar o despacho.
+[IO.File]::WriteAllText((Join-Path $scriptsMock 'modo.txt'), 'agy-simples', $utf8)
+$saidaAgySimples = Join-Path $raizTeste 'executor agy simples.md'
+& $shellTeste -NoProfile -ExecutionPolicy Bypass -File (Join-Path $scriptsMock 'despachar.ps1') -Executor agy -Nivel simples -Pasta $repoDiffTeste -Tarefa $pacoteTeste -Saida $saidaAgySimples -Conjuntos nenhuma | Out-Null
+$codigoAgySimples = $LASTEXITCODE
+# Piso low: Flash-Lite sem sufixo atende; acima disso ele cede a vez ao Flash com a variante do piso.
+$modeloSimplesEsperado = if ($P.capacidades.N1.esforco -eq 'low') { 'gemini-4-flash-lite' } else { "gemini-4-flash-$($P.capacidades.N1.esforco)" }
+$esforcoSimplesEsperado = if ($P.capacidades.N1.esforco -eq 'low') { 'nao-informado' } else { $P.capacidades.N1.esforco }
+$nivelAgySimples = [IO.File]::ReadAllText("$saidaAgySimples.nivel.json") | ConvertFrom-Json
+Confere ($codigoAgySimples -eq 0 -and $nivelAgySimples.modeloPedido -eq $modeloSimplesEsperado -and $nivelAgySimples.esforcoSelecionado -eq $esforcoSimplesEsperado) "agy simples usa $modeloSimplesEsperado"
+Remove-Item -LiteralPath (Join-Path $scriptsMock 'agy-inferencia.txt') -ErrorAction SilentlyContinue
 [IO.File]::WriteAllText((Join-Path $scriptsMock 'modo.txt'), 'agy-trava-tardia', $utf8)
 $saidaAgyTrava = Join-Path $raizTeste 'executor agy travado tarde.md'
 $erroTravaAgy = Join-Path $raizTeste 'executor agy travado tarde.err'
@@ -498,12 +515,12 @@ Confere ($LASTEXITCODE -eq 3 -and $rotaMock.tentativas.Count -eq 1 -and $rotaMoc
 & $shellTeste -NoProfile -ExecutionPolicy Bypass -File (Join-Path $scriptsMock 'gpt-review.ps1') -Forcar -Autor claude -Pasta $repoDiffTeste -Saida $saidaMock | Out-Null
 $rotaMock = [IO.File]::ReadAllText("$saidaMock.rota.json") | ConvertFrom-Json
 $nivelMock = [IO.File]::ReadAllText("$saidaMock.nivel.json") | ConvertFrom-Json
-Confere ($LASTEXITCODE -eq 0 -and $rotaMock.familia -eq 'gpt' -and $nivelMock.esforcoPedido -eq 'medium' -and (Test-ParecerRevisao ([IO.File]::ReadAllText($saidaMock)))) 'camada GPT executa L2 do diff original e exige parecer completo'
+Confere ($LASTEXITCODE -eq 0 -and $rotaMock.familia -eq 'gpt' -and $nivelMock.esforcoPedido -eq $P.revisao.L2 -and (Test-ParecerRevisao ([IO.File]::ReadAllText($saidaMock)))) 'camada GPT executa L2 do diff original e exige parecer completo'
 & $shellTeste -NoProfile -ExecutionPolicy Bypass -File (Join-Path $scriptsMock 'gpt-review.ps1') -Forcar -Autor claude -Alto -Commit $commitPublicoTeste -Pasta $repoDiffTeste -Saida $saidaMock | Out-Null
 $nivelMock = [IO.File]::ReadAllText("$saidaMock.nivel.json") | ConvertFrom-Json
-Confere ($LASTEXITCODE -eq 0 -and $nivelMock.esforcoPedido -eq 'medium' -and $nivelMock.esforcoSelecionado -eq 'medium' -and [IO.File]::ReadAllText("$saidaMock.diff.md").Contains('Nivel L2')) '-Alto em commit publico L1 chega ao ramo real com medium (piso L2) no nivel.json'
+Confere ($LASTEXITCODE -eq 0 -and $nivelMock.esforcoPedido -eq $P.revisao.L2 -and $nivelMock.esforcoSelecionado -eq $P.revisao.L2 -and [IO.File]::ReadAllText("$saidaMock.diff.md").Contains('Nivel L2')) '-Alto em commit publico L1 chega ao ramo real com o piso L2 no nivel.json'
 foreach ($cenario in @(
-  @{nivel='L1';topo=$false;esforco='low'}, @{nivel='L2';topo=$false;esforco='medium'}, @{nivel='L0';topo=$true;esforco='medium'}
+  @{nivel='L1';topo=$false;esforco=$P.revisao.L1}, @{nivel='L2';topo=$false;esforco=$P.revisao.L2}, @{nivel='L0';topo=$true;esforco=$P.revisao.L2}
 )) {
   $argsFable = @('-NoProfile','-ExecutionPolicy','Bypass','-File',(Join-Path $scriptsMock 'revisar.ps1'),
     '-Autor','gpt','-Revisor','claude','-Nivel',$cenario.nivel,'-TentativaUnica','-Pasta',$repoDiffTeste,'-Pacote',$pacoteTeste,'-Saida',$saidaMock)

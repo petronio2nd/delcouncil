@@ -15,10 +15,10 @@ skill `revisor`, o canal é o `scripts/revisar.ps1` e o quadro é o `STATUS.md` 
 | Canal entre as famílias | `scripts/revisar.ps1 -Autor claude\|gpt\|gemini`: sem `-Revisor`, o script escolhe a outra família. Revisor GPT pelo `opencode run --standalone` numa config isolada só de leitura; revisor Claude pelo `claude -p` só com leitura; Gemini pelo `agy -p`. Até 2026-10-24 o canal GPT era o Codex CLI (`codex exec -s read-only`); `-Autor codex` ainda vale como sinônimo de `gpt` |
 | Camada extra no diff | **Desativada** (usuário, 2026-11-03: "GPT extra desativado"). O `scripts/gpt-review.ps1` sai 0 sem chamar ninguém; `-Forcar` só a pedido explícito do usuário. Ver seção 0b |
 | Subagente executor | `scripts/despachar.ps1 -Executor agy\|opencode [-Modelo <id>] -Nivel simples\|comum\|dificil`: um comando só; o executor escreve só na pasta do projeto e grava o relatório em arquivo. Sempre um modelo barato que dá conta do nível (Astra, Fable e Argon não executam). agy por padrão (Flash-Lite ou Flash, Claude Sonnet ou Claude Opus pelo nível, na cota do plano Google, que sobrava); opencode com GPT (`openai/`: Luna, Terra ou Sol pelo nível, na assinatura do ChatGPT, sem custo de API) quando a tarefa precisa rodar teste e de reserva do agy; opencode com Claude (`anthropic/`, no crédito mensal da API que vem com o Max) em N3 sem Sol ou como reserva; quando a cota ou o crédito de um acaba, sai com 3 e a frase diz o próximo. OpenRouter só se o usuário pedir (seção 6) |
-| Revisor GPT (Astra) | O GPT-Astra mais novo pelo OpenCode (hoje `openai/gpt-6-astra`), esforço pelo nível (L1 `low`, L2 `medium`); o script escolhe sozinho |
-| Revisor Claude (Fable) | O Fable mais novo (`claude -p --model fable`), L1 `low`, L2 ou `-Topo` `medium` |
-| Nível, topo e economia | L0 dispensa outra família. L1 (`low`) e L2 (`medium`) exigem N3: Astra, Fable ou Argon, com o mesmo piso nas três (usuário, 2026-11-03). A reserva respeita o piso, inclusive em economia. A política está em `orquestrador/politica-modelos.json` |
-| Árbitro | A terceira família, a que não é nem do autor nem do revisor: Gemini pelo Antigravity CLI quando autor e revisor são Claude e GPT (`-Revisor gemini -Papel arbitro`, `agy -p`, o Argon mais novo no esforço do nível, hoje `gemini-4-argon-low` ou `-medium`, no plano Gemini Pro do usuário, sem custo por chamada, com limite semanal próprio); senão, a que sobrou (`-Revisor claude\|gpt -Papel arbitro`). Só desempata achados recusados (passo 3b). O agy fica só leitura pelo `deny` em `~/.gemini/antigravity-cli/settings.json`; se o `agy` recriar a pasta e o arquivo sumir, o script para |
+| Revisor GPT (Astra) | O GPT-Astra mais novo pelo OpenCode (hoje `openai/gpt-6-astra`), esforço L1 ou L2 do perfil em vigor; o script escolhe sozinho |
+| Revisor Claude (Fable) | O Fable mais novo (`claude -p --model fable`), esforço L1, e L2 em L2 ou `-Topo` |
+| Nível, topo e economia | L0 dispensa outra família. L1 e L2 exigem N3 (esforços no perfil em vigor, `orquestrador/scripts/esforcos.ps1`): Astra, Fable ou Argon, com o mesmo piso nas três (usuário, 2026-11-03). A reserva respeita o piso, inclusive em economia. A política está em `orquestrador/politica-modelos.json` |
+| Árbitro | A terceira família, a que não é nem do autor nem do revisor: Gemini pelo Antigravity CLI quando autor e revisor são Claude e GPT (`-Revisor gemini -Papel arbitro`, `agy -p`, o Argon mais novo no esforço do nível, a variante `-<esforço>` do nível, no plano Gemini Pro do usuário, sem custo por chamada, com limite semanal próprio); senão, a que sobrou (`-Revisor claude\|gpt -Papel arbitro`). Só desempata achados recusados (passo 3b). O agy fica só leitura pelo `deny` em `~/.gemini/antigravity-cli/settings.json`; se o `agy` recriar a pasta e o arquivo sumir, o script para |
 | Árbitro indisponível | Exige terceira família N3 (Astra, Fable ou Argon): sem ela, disputa pendente. Flash não substitui. OpenRouter continua somente por pedido explícito, fora das reservas automáticas |
 | Cotas | `scripts/cota.ps1`, lido pelos scripts sem gastar nada: ChatGPT pelo `~\.local\share\dupla\cota-chatgpt.json` (o plugin gêmeo do OpenCode grava a cada resposta do provedor `openai`) e, sem ele, pelo retrato do Codex (`rate_limits` em `~\.codex\sessions`; com mais de 1 h, o script pede um fresco com uma chamada mínima ao Codex CLI, 6 s e 5 tokens: o app não guarda o percentual em disco, e o Codex só serve para isso desde 2026-10-24); agy pelo `agy -p "/usage"`; gasto da API pelo OpenCode no banco dele (`scripts/opencode_custo.py`). Painel de todas as fontes, com a linha "ChatGPT (OpenCode)" e a fonte da cota, e o OpenRouter: `scripts/recursos.ps1` (regra de ritmo no `orquestrador`, seção 4) |
 | Quadro do projeto | `STATUS.md` na raiz (formato abaixo) |
@@ -82,14 +82,13 @@ A dupla é por **família de modelo**, não por harness (usuário, 2026-10-24): 
 o autor e nunca abaixo dele em força; o nível segue o risco da entrega (seção 0). Mesma família nunca conta
 como segunda opinião, mesmo em harness diferente.
 
-- Autor **Claude** → revisor **Gemini** (Argon; reserva automática: GPT Astra). Autor **GPT** → revisor
+- Autor **Claude** → revisor **GPT** (Astra; reserva automática: Gemini Argon). Autor **GPT** → revisor
   **Gemini** (Argon; reserva automática: Claude Fable). Autor **Gemini** → revisor **GPT** (reserva: Claude).
   Falta de cota ou de parecer completo troca a família na mesma chamada, uma tentativa por família elegível.
-  Claude → Argon
-  desde 2026-10-28, em teste: o usuário quer avaliar o Argon como revisor, e a cota dele sobrava no árbitro.
-  Antes era Claude → Astra.
+  Claude → Astra desde 2026-11-07 (usuário: Astra revisor, Argon reserva). De 2026-10-28 a 11-07 foi
+  Claude → Argon, em teste. Astra não revisa GPT nem Argon revisa Gemini: as outras rotas ficam.
 - Árbitro: a terceira família, pela tabela da seção 3b.
-- O esforço do revisor segue só o risco (L1 `low`, L2 `medium`), qualquer que seja o autor: a regra
+- O esforço do revisor segue só o risco (esforço L1 ou L2 do perfil em vigor), qualquer que seja o autor: a regra
   antiga de subir um degrau para autor barato saiu em 2026-11-03 (revisão extra redundante). Vale a
   família diferente e, na disputa, o árbitro.
 - Qual é a sua família: no **Claude Code** é sempre Claude; no **OpenCode**, o plugin gêmeo injeta no
@@ -137,8 +136,8 @@ custo é de cota, não do usuário: na dúvida entre revisar e perguntar, revise
 | Nível | Quando | Revisão |
 |---|---|---|
 | **L0** | docs ou texto, rename, menos de 30 linhas sem dado | sem outra família; o `/code-review` só se houver código (texto sem código dispensa) |
-| **L1** | o comum: código novo, mais de 30 linhas, suposição não testada | outra família N3 em `low` (Astra, Fable ou Argon) |
-| **L2** | dado, dinheiro, produção, segredo, apagar ou sobrescrever, migração, irreversível | outra família N3 em `medium` (Astra, Fable ou Argon), testes obrigatórios e árbitro em qualquer `bloqueia` recusado |
+| **L1** | o comum: código novo, mais de 30 linhas, suposição não testada | outra família N3 no esforço L1 (Astra, Fable ou Argon) |
+| **L2** | dado, dinheiro, produção, segredo, apagar ou sobrescrever, migração, irreversível | outra família N3 no esforço L2 (Astra, Fable ou Argon), testes obrigatórios e árbitro em qualquer `bloqueia` recusado |
 
 - O script calcula o nível pelo diff quando você não passa `-Nivel`; `-Topo` promove o esforço; `-Economia` e `-UsuarioPediu` preservam os pisos e não promovem L0. Passe `-Nivel` quando souber algo que o diff não mostra (o arquivo vai à produção,
   o usuário disse que é descartável).
@@ -170,7 +169,7 @@ Toda entrega com código passa pelo `/code-review` no diff, vá ou não à dupla
 2026-11-03). É camada a mais: não substitui o revisor, os testes nem a conferência.
 
 - **Quando:** depois dos testes e antes de montar o pacote. Sem dupla, antes do commit.
-- **Nível** (usuário, 2026-11-03): `low` no código comum; `medium` em risco elevado (dado, dinheiro,
+- **Nível**: `codeReview.comum` do perfil em vigor no código comum; `codeReview.riscoElevado` em risco elevado (dado, dinheiro,
   produção, segredo, apagar ou sobrescrever). Passe sempre o nível: sem ele, a skill repete o último
   usado. Não use `--fix` nem `--comment`: você julga cada achado.
 - **Achados:** julgue como na seção 3 (confirmado → corrija; recusado → motivo em uma frase). O que
@@ -184,7 +183,7 @@ Toda entrega com código passa pelo `/code-review` no diff, vá ou não à dupla
 **`gpt-review.ps1` (camada GPT extra): desativada** (usuário, 2026-11-03: "GPT extra desativado"). Não
 rode, nem como reserva da revisão cruzada: o script sai 0 com "dispensado" sem chamar nada
 (`limites.gptExtra: false` na política). Só com pedido explícito do usuário, `-Forcar` religa uma
-chamada (Astra, esforço da política: `low` em L1, `medium` em L2 ou `-Alto`); `-SoDiff` continua
+chamada (Astra, esforço L1 da política, ou L2 em L2 ou `-Alto`); `-SoDiff` continua
 offline. Era a camada extra de 2026-10-22; saiu por ser revisão redundante ao `/code-review` e à
 revisão cruzada.
 
@@ -225,12 +224,12 @@ powershell -ExecutionPolicy Bypass -File $HOME\.agents\skills\dupla\scripts\revi
 ```
 
 - `-Autor` é obrigatório: a família da sessão (seção "Quem é quem"; `codex` vale como sinônimo de `gpt`).
-  Sem `-Revisor`, o script escolhe a outra família (Claude → Gemini Argon, GPT → Gemini Argon, Gemini →
-  GPT). GPT → Argon, e não Fable, porque o Max fica para orquestrar (usuário, 2026-10-25); Claude → Argon,
-  em teste desde 2026-10-28. Se o preferido ficar sem cota, falhar ou não entregar parecer completo,
+  Sem `-Revisor`, o script escolhe a outra família (Claude → GPT Astra, GPT → Gemini Argon, Gemini →
+  GPT). GPT → Argon, e não Fable, porque o Max fica para orquestrar (usuário, 2026-10-25); Claude → Astra,
+  com Argon de reserva, desde 2026-11-07. Se o preferido ficar sem cota, falhar ou não entregar parecer completo,
   a mesma chamada tenta a outra família elegível, sem nova pergunta ao usuário. `-Revisor` escolhe a
   preferência; `-SemReserva` restringe a uma família para diagnóstico ou escolha explícita do usuário.
-  Astra, Fable e Argon usam o mesmo esforço pelo nível (L1 `low`, L2 `medium`; usuário, 2026-11-03).
+  Astra, Fable e Argon usam o mesmo esforço pelo nível (esforço L1 ou L2 do perfil em vigor).
   Mesma família nos dois sai com 2.
 - Leva de 1 a 10 minutos. Dê ao comando o tempo máximo da ferramenta e avise o usuário em uma linha
   ("o GPT está revisando em L1").
@@ -241,7 +240,7 @@ powershell -ExecutionPolicy Bypass -File $HOME\.agents\skills\dupla\scripts\revi
   automático"). Diga a escolha em uma linha ("revisão em L2: o script apaga dados do banco").
   - **Sem `-Nivel`**: o script calcula pelo diff não commitado (árvore limpa: o último commit; `-Diff
     <sha|a..b>` aponta outro) pela régua da seção 0 e roda a rodada 1 nesse nível. L1 é Astra, Fable
-    ou Argon em `low`; L2, em `medium`. Use `-SoNivel` para consultar a escolha antes da chamada.
+    ou Argon no esforço L1; L2, no esforço L2. Use `-SoNivel` para consultar a escolha antes da chamada.
   - **`-Nivel L2`** (ou **`-Topo`**, que ganha do cálculo): a entrega apaga ou sobrescreve dado, mexe
     com dinheiro, produção ou segredo, ou é difícil de desfazer (migração, conversão que substitui o
     original); ou a rodada 1 trouxe `bloqueia`, ou você recusou um achado. O risco define o piso;
@@ -415,7 +414,7 @@ melhor modelo não vai a executor; vai a uma filha Opus (skill `orquestrador`).
    (seção 0), o revisor é de outra família que o executor (`-Autor` = a família do executor, não a
    da sessão): executor Claude (agy Sonnet ou Opus, opencode `anthropic/`) → Gemini (Argon, em teste desde 2026-10-28; zerado, GPT Astra); executor GPT
    (opencode `openai/`) → Gemini (Argon; zerado, Claude Fable); executor Flash ou Flash-Lite → GPT. Mesma
-   família não conta como segunda opinião; o esforço do revisor segue só o risco (L1 `low`, L2 `medium`).
+   família não conta como segunda opinião; o esforço do revisor segue só o risco (esforço L1 ou L2 do perfil).
 
 Duas tarefas de escrita nunca correm ao mesmo tempo nos mesmos arquivos: o executor trabalha na
 pasta real do projeto, não numa cópia.
@@ -430,9 +429,9 @@ a trava da lista de permissões abaixo. O OpenRouter nunca é executor.
 
 | Executor | Como roda | Modelo pelo `-Nivel` | Custo |
 |---|---|---|---|
-| `agy` (padrão; não roda comando) | Antigravity CLI (`agy -p`) com um home só do despacho em `%LOCALAPPDATA%\dupla\agy-fazer\<id>`: libera `write_file` só na pasta do projeto (menos `.git` e `.env`) e nega comando, URL e MCP. O settings.json do revisor (`~\.gemini\antigravity-cli`) fica intocado | O mais novo da família. `simples`: Gemini Flash-Lite `low` (o agy de 03/11/2026 não tem; cai no Gemini 3.8 Flash `low`, um degrau acima). `comum`: Claude Sonnet `low` (hoje `claude-sonnet-5-5-low`). `dificil`: Claude Opus `medium` (hoje `claude-opus-5-5-medium`). O Argon só revisa: `-Modelo` com ele sai com 1 | Plano Google AI Pro do usuário, sem custo por chamada; limites do grupo Gemini e do grupo Claude/GPT (5 h e semanal) e do Argon (semanal), no `agy -p "/usage"` |
-| `opencode` com GPT (automático para N1, N2 e N3; tarefa que roda teste; reserva do agy) | `opencode-cli run --standalone --auto` com uma pasta de config só do despacho em `%LOCALAPPDATA%\dupla\opencode-fazer\<id>` (`OPENCODE_CONFIG_DIR`; sem config do projeto nem do `~\.claude`, sem MCP, sem instructions, segredos do ambiente apagados); trava abaixo. Tarefa anexada (`--file`); roda comandos e testes; ferramentas de rede negadas (`-Rede` não libera nada) | O mais novo da família no provedor `openai`. `simples`: GPT-Luna `low`. `comum`: GPT-Terra `low` (hoje `openai/gpt-6.1-terra`). `dificil`: GPT-Sol `medium` (hoje `openai/gpt-6.1-sol`); sem Sol no catálogo, Claude Opus N3 pelo crédito da API, descrito na linha seguinte. `dificil` com capacidade explicitamente N2: GPT-Terra `medium`. `-Modelo` aceita um `openai/<id>` de `opencode models`, menos o Astra (sai com 1: ele revisa, não executa) | Assinatura do ChatGPT do usuário, sem custo de API: janela de 5 h e semanal, a mesma do Astra que revisa |
-| `opencode` com Claude (automático para N3 sem Sol, ou `-Modelo anthropic/<id>`) | O mesmo `opencode-cli run --standalone --auto`, mesma config isolada e mesma trava | O mais novo da família no provedor `anthropic`, nunca os `-fast`. `simples`: Claude Haiku `low`. `comum`: Claude Sonnet `low` (hoje `claude-sonnet-5-5`). `dificil`: Claude Opus `medium` (hoje `claude-opus-5-5`). Fable só revisa: `-Modelo` com ele sai com 1 | Crédito de US$ 100 por mês da API da Anthropic que vem com o Max (chave `opencode-reserva`), sem rollover; esgotado, a API recusa sem cobrar. O rodapé traz o custo da sessão; teto de US$ 2,00 por tarefa |
+| `agy` (padrão; não roda comando) | Antigravity CLI (`agy -p`) com um home só do despacho em `%LOCALAPPDATA%\dupla\agy-fazer\<id>`: libera `write_file` só na pasta do projeto (menos `.git` e `.env`) e nega comando, URL e MCP. O settings.json do revisor (`~\.gemini\antigravity-cli`) fica intocado | O mais novo da família. `simples`: Gemini Flash-Lite, que só atende o esforço `low` (piso acima disso ou ausente no catálogo: cai no Gemini Flash com a variante do piso). `comum`: Claude Sonnet (hoje `claude-sonnet-5-5-<esforço>`). `dificil`: Claude Opus (hoje `claude-opus-5-5-<esforço>`). Esforço de cada nível pelo perfil em vigor. O Argon só revisa: `-Modelo` com ele sai com 1 | Plano Google AI Pro do usuário, sem custo por chamada; limites do grupo Gemini e do grupo Claude/GPT (5 h e semanal) e do Argon (semanal), no `agy -p "/usage"` |
+| `opencode` com GPT (automático para N1, N2 e N3; tarefa que roda teste; reserva do agy) | `opencode-cli run --standalone --auto` com uma pasta de config só do despacho em `%LOCALAPPDATA%\dupla\opencode-fazer\<id>` (`OPENCODE_CONFIG_DIR`; sem config do projeto nem do `~\.claude`, sem MCP, sem instructions, segredos do ambiente apagados); trava abaixo. Tarefa anexada (`--file`); roda comandos e testes; ferramentas de rede negadas (`-Rede` não libera nada) | O mais novo da família no provedor `openai`. `simples`: GPT-Luna. `comum`: GPT-Terra (hoje `openai/gpt-6.1-terra`). `dificil`: GPT-Sol (hoje `openai/gpt-6.1-sol`), cada um no esforço do nível pelo perfil em vigor; sem Sol no catálogo, Claude Opus N3 pelo crédito da API, descrito na linha seguinte. `dificil` com capacidade explicitamente N2: GPT-Terra no escalado N2. `-Modelo` aceita um `openai/<id>` de `opencode models`, menos o Astra (sai com 1: ele revisa, não executa) | Assinatura do ChatGPT do usuário, sem custo de API: janela de 5 h e semanal, a mesma do Astra que revisa |
+| `opencode` com Claude (automático para N3 sem Sol, ou `-Modelo anthropic/<id>`) | O mesmo `opencode-cli run --standalone --auto`, mesma config isolada e mesma trava | O mais novo da família no provedor `anthropic`, nunca os `-fast`. `simples`: Claude Haiku. `comum`: Claude Sonnet (hoje `claude-sonnet-5-5`). `dificil`: Claude Opus (hoje `claude-opus-5-5`), cada um no esforço do nível pelo perfil em vigor. Fable só revisa: `-Modelo` com ele sai com 1 | Crédito de US$ 100 por mês da API da Anthropic que vem com o Max (chave `opencode-reserva`), sem rollover; esgotado, a API recusa sem cobrar. O rodapé traz o custo da sessão; teto de US$ 2,00 por tarefa |
 | `openrouter` (só se o usuário pedir) | Laço do `openrouter.ps1 -Papel fazer`: ler, listar, buscar, `write_file` e `edit_file`, presos à pasta do projeto, sem `.git` nem arquivos de segredo, sem comando nem rede. Até 60 passos, 300 KB gravados (200 KB por arquivo) e US$ 2,00; passou, para com 1 | O Muse Wonder, com o Muse Spark 1.3 e o Qwen3.8 Max atrás, esforço `low`, `medium` ou `high`. `-Modelo` aceita um id do OpenRouter (ou vários, separados por vírgula) | Paga por chamada; o rodapé do relatório traz o custo |
 
 No agy, um `-Modelo` explícito presente no catálogo sem sufixo pode rodar com o esforço padrão do provedor quando o chamador omite `-Esforco` e falta uma variante suficiente. O registro separa o esforço pedido de `esforcoSelecionado = nao-informado`. Com `-Esforco` explícito, a rota exige uma variante compatível.

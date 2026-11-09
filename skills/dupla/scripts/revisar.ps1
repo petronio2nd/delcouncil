@@ -4,7 +4,7 @@
 #        [-Topo] [-Economia] [-UsuarioPediu] [-SemReserva]
 #   -Autor          : a família do modelo que escreveu a entrega (claude, gpt ou gemini; codex vale como gpt). Tanto
 #                     faz o harness (Claude Code ou OpenCode): o que conta é a família (usuário, 2026-10-24).
-#   -Revisor        : preferência opcional. Reservas automáticas: autor claude -> gemini -> gpt;
+#   -Revisor        : preferência opcional. Reservas automáticas: autor claude -> gpt -> gemini;
 #                     autor gpt -> gemini -> claude; autor gemini -> gpt -> claude. Uma tentativa por família.
 #                     Igual à do autor sai com 2. -SemReserva restringe à preferência, sem dispensar revisão.
 #                     gpt    : o GPT-Astra mais novo pelo OpenCode (opencode-cli run --standalone, trava só leitura
@@ -26,7 +26,7 @@
 #                     ou o diff passar de 400 linhas; L0 se só .md/.txt e menos de 30 linhas; senão L1.
 #                     A primeira linha diz nivel/motivo. So -Topo promove L0 e eleva esforco.
 #   -SoNivel        : só calcula e imprime o nível (com o motivo) e sai 0, sem chamar revisor: para conferir a régua.
-#   Esforco: politica-modelos.json; Astra, Fable e Argon low em L1, medium em L2 ou Topo (usuário, 2026-11-03).
+#   Esforco: politica-modelos.json; Astra, Fable e Argon medium em L1, high em L2 ou Topo (usuário, 2026-11-07).
 #   -Topo: escala esforco sem reduzir por cota; fonte esgotada usa reserva.
 #   -Economia/-UsuarioPediu: compatibilidade com chamadores; nao reduzem o piso de revisao.
 # Sai com 0 e parecer completo (ou L0 dispensado/-SoNivel); com 2 por argumento invalido ou recusa
@@ -65,7 +65,7 @@ function Q([string]$s) { '"' + $s + '"' }
 if ($Autor -eq 'codex') { $Autor = 'gpt' }
 if ($Revisor -eq 'codex') { $Revisor = 'gpt' }
 if ($Revisou -eq 'codex') { $Revisou = 'gpt' }
-# Argon segue preferido; falta de cota ou parecer aciona a outra família elegível (usuário, 2026-10-31).
+# Claude -> Astra; GPT -> Argon; Gemini -> Astra; falta de cota ou parecer aciona a outra família elegível (usuário, 2026-11-07).
 try { $rotas = @(Get-RotasRevisao -Autor $Autor -Revisor $Revisor -Papel $Papel -Revisou $Revisou -SemReserva:$SemReserva) }
 catch { Write-Output $_.Exception.Message; exit 2 }
 $Revisor = $rotas[0]
@@ -151,7 +151,7 @@ $linha = ''
 
 if ($motor -eq 'gpt') {
   # GPT pelo OpenCode, na janela da assinatura do ChatGPT (a mesma do Codex de antes). Modelo: o GPT-Astra mais
-  # novo de `opencode models` (nunca -fast); esforco da politica: low em L1, medium em L2 ou -Topo;
+  # novo de `opencode models` (nunca -fast); esforco da politica: medium em L1, high em L2 ou -Topo;
   # cota nao reduz piso. Esforco vai como variante (-m openai/<modelo>#<esforço>).
   $oc = Get-OpenCodeExe
   if (-not $oc) { Write-Output 'opencode-cli.exe não encontrado (app OpenCode desktop)'; exit 1 }
@@ -205,7 +205,7 @@ if ($motor -eq 'gpt') {
     Write-Output "agy sem só leitura: o agy não lê deny de $($faltam -join ', ') em ~\.gemini\antigravity-cli\settings.json (arquivo ausente, JSON inválido ou com BOM?); familia nao sera chamada"; exit 3
   }
   # Modelo: sempre o Argon mais novo, não o Flash (usuário, 2026-10-09: no único teste de revisão achado, o
-  # Flash escreve bonito e erra a lógica). Esforço da política (usuário, 2026-11-03): low em L1, medium em L2
+  # Flash escreve bonito e erra a lógica). Esforço da política (usuário, 2026-11-07): medium em L1, high em L2
   # ou -Topo; variante ausente só sobe. Sem Argon na lista, para: o agy roda o modelo padrão quando não
   # reconhece o nome (2026-10-18 entrou o 4 Argon; o Pro saiu da política em 2026-11-03).
   $lista = @(& $agy models 2>$null | ForEach-Object { ($_ -split '\s+')[0] })

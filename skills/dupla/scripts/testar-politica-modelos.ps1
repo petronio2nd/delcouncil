@@ -4,6 +4,8 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'revisao-comum.ps1')
 . (Join-Path $PSScriptRoot 'opencode-comum.ps1')
 $casosPolitica = 0
+# Esforcos vem do perfil em vigor (esforcos.ps1 troca o perfil; usuário, 2026-11-07).
+$P = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\..\orquestrador\politica-modelos.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 function ConferePolitica($Valor, $Esperado) {
   if ($Valor -ne $Esperado) { throw "Esperado $Esperado; obtido $Valor" }
   $script:casosPolitica++
@@ -18,15 +20,15 @@ foreach ($idTeste in 'fable','openai/gpt-6-astra','gemini-4-argon-high') {
 }
 foreach ($idTeste in 'opus','openai/gpt-6.1-sol#high','openai/gpt-6.1-terra#low','haiku','gemini-4-flash-lite') { ConferePolitica (Test-SoRevisao $idTeste) $false }
 foreach ($nTeste in 'N1','N2','N3') {
-  ConferePolitica (Get-EsforcoModelo $nTeste) (@{N1='low';N2='low';N3='medium'}[$nTeste])
-  ConferePolitica (Get-EsforcoModelo $nTeste -Escalar) (@{N1='medium';N2='medium';N3='high'}[$nTeste])
+  ConferePolitica (Get-EsforcoModelo $nTeste) $P.capacidades.$nTeste.esforco
+  ConferePolitica (Get-EsforcoModelo $nTeste -Escalar) $P.capacidades.$nTeste.escalado
 }
-# Mesmo piso de revisao e arbitragem para qualquer familia: L1 low, L2 ou escalado medium.
+# Mesmo piso de revisao e arbitragem para qualquer familia: L1, e L2 tambem quando escalado.
 foreach ($familiaTeste in 'gpt','claude','gemini','') {
   foreach ($papelTeste in 'revisor','arbitro') {
-    ConferePolitica (Get-EsforcoModelo N3 -Papel $papelTeste -Risco L1 -Familia $familiaTeste) 'low'
-    ConferePolitica (Get-EsforcoModelo N3 -Papel $papelTeste -Risco L2 -Familia $familiaTeste) 'medium'
-    ConferePolitica (Get-EsforcoModelo N3 -Papel $papelTeste -Risco L0 -Escalar -Familia $familiaTeste) 'medium'
+    ConferePolitica (Get-EsforcoModelo N3 -Papel $papelTeste -Risco L1 -Familia $familiaTeste) $P.revisao.L1
+    ConferePolitica (Get-EsforcoModelo N3 -Papel $papelTeste -Risco L2 -Familia $familiaTeste) $P.revisao.L2
+    ConferePolitica (Get-EsforcoModelo N3 -Papel $papelTeste -Risco L0 -Escalar -Familia $familiaTeste) $P.revisao.L2
   }
 }
 foreach ($acaoTeste in @(
@@ -115,7 +117,7 @@ $catalogoExecutor = @('openai/gpt-6-luna', 'openai/gpt-6.1-terra', 'openai/gpt-6
 ConferePolitica (Get-ModeloExecutorOpenCode $catalogoExecutor N1) 'openai/gpt-6-luna'
 $modeloN1Reserva = Get-ModeloExecutorOpenCode @('openai/gpt-6.1-terra','anthropic/claude-haiku-4-5') N1
 ConferePolitica $modeloN1Reserva 'openai/gpt-6.1-terra'
-ConferePolitica (Get-EsforcoModelo (Get-CapacidadeModelo $modeloN1Reserva)) 'low'
+ConferePolitica (Get-EsforcoModelo (Get-CapacidadeModelo $modeloN1Reserva)) $P.capacidades.N2.esforco
 ConferePolitica (Get-ModeloExecutorOpenCode $catalogoExecutor N2) 'openai/gpt-6.1-terra'
 ConferePolitica (Get-ModeloExecutorOpenCode @('openai/gpt-6.1-sol','anthropic/claude-sonnet-4-6') N2) 'openai/gpt-6.1-sol'
 ConferePolitica (Get-ModeloExecutorOpenCode $catalogoExecutor N3) 'openai/gpt-6.1-sol'
@@ -144,4 +146,20 @@ try {
   ConferePolitica $registroTeste.esforcoPedido 'high'
   ConferePolitica $registroTeste.esforcoSelecionado 'nao-informado'
 } finally { Remove-Item -LiteralPath "$rotaTemporaria.nivel.json" -ErrorAction SilentlyContinue }
+# esforcos.ps1 numa copia da politica: cada perfil grava os seus valores e e reconhecido de volta.
+$esforcosPs = Join-Path $PSScriptRoot '..\..\orquestrador\scripts\esforcos.ps1'
+$perfisTeste = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\..\orquestrador\perfis-esforco.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$copiaPolitica = Join-Path ([IO.Path]::GetTempPath()) ('politica-teste-' + [guid]::NewGuid() + '.json')
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot '..\..\orquestrador\politica-modelos.json') $copiaPolitica
+try {
+  foreach ($nomePerfil in @($perfisTeste.PSObject.Properties.Name | Where-Object { $_ -notlike '_*' })) {
+    $saidaPerfil = (& powershell -NoProfile -ExecutionPolicy Bypass -File $esforcosPs -Perfil $nomePerfil -ArquivoPolitica $copiaPolitica) -join "`n"
+    $copia = Get-Content -LiteralPath $copiaPolitica -Raw -Encoding UTF8 | ConvertFrom-Json
+    $alvo = $perfisTeste.$nomePerfil
+    ConferePolitica ($LASTEXITCODE -eq 0 -and ($saidaPerfil -match "(?m)^perfil em vigor: $nomePerfil$")) $true
+    ConferePolitica "$($copia.capacidades.N1.esforco),$($copia.capacidades.N1.escalado),$($copia.capacidades.N3.escalado),$($copia.revisao.L1),$($copia.revisao.L2),$($copia.codeReview.comum),$($copia.codeReview.riscoElevado)" "$($alvo.N1[0]),$($alvo.N1[1]),$($alvo.N3[1]),$($alvo.L1),$($alvo.L2),$($alvo.codeReview[0]),$($alvo.codeReview[1])"
+  }
+  $null = & powershell -NoProfile -ExecutionPolicy Bypass -File $esforcosPs -Perfil inexistente -ArquivoPolitica $copiaPolitica
+  ConferePolitica $LASTEXITCODE 2
+} finally { Remove-Item -LiteralPath $copiaPolitica -ErrorAction SilentlyContinue }
 Write-Output "$casosPolitica casos de politica OK"

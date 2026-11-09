@@ -67,7 +67,8 @@ function Get-RotasRevisao {
   if ($Autor -eq 'codex') { $Autor = 'gpt' }
   if ($Revisor -eq 'codex') { $Revisor = 'gpt' }
   if ($Revisou -eq 'codex') { $Revisou = 'gpt' }
-  $preferidas = @{ claude = @('gemini', 'gpt'); gpt = @('gemini', 'claude'); gemini = @('gpt', 'claude') }
+  # Claude -> Astra, reserva Argon (usuário, 2026-11-07).
+  $preferidas = @{ claude = @('gpt', 'gemini'); gpt = @('gemini', 'claude'); gemini = @('gpt', 'claude') }
   if (-not $preferidas.ContainsKey($Autor)) { throw 'Informe a família real do autor.' }
   if ($Papel -eq 'arbitro') {
     if (-not $Revisou -or $Revisou -eq $Autor) { throw 'Árbitro exige -Revisou com a família que realmente revisou (veja <Saida>.rota.json).' }

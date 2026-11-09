@@ -8,6 +8,7 @@ import type { Cota, Cotas, JanelaMax, Linha, Mapa, Retrato, Trabalho } from '../
 import {
   AVISO_MAX,
   cotasEmTexto,
+  cotasFixas,
   fraseCota,
   juntarMax,
   leiturasDoMax,
@@ -544,8 +545,8 @@ export const register: Register = on => {
           {prox && <Text>Próximo trabalho vai para <Text bold color="success">{prox.nome}</Text></Text>}
           <Text color={topo.velha ? 'warning' : undefined} dimColor={!topo.velha}>{topo.texto}</Text>
         </Box>
-        {c.cotas.map((cota, i) => blocoCota(ui, cota, agora, c.fuso, `c:${i}:${cota.fonte}|${cota.limite}`))}
-        {c.cotas.length > 0 && <Text key="legenda" dimColor>uso abaixo do tempo = vai sobrar · acima = vai faltar</Text>}
+        {cotasFixas(c).map((cota, i) => blocoCota(ui, cota, agora, c.fuso, `c:${i}:${cota.fonte}|${cota.limite}`))}
+        <Text key="legenda" dimColor>uso abaixo do tempo = vai sobrar · acima = vai faltar</Text>
         {!c.maxAoVivo && <Text key="max" dimColor>{AVISO_MAX}</Text>}
       </Box>
     )
