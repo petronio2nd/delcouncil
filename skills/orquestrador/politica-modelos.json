@@ -9,6 +9,7 @@
   "codeReview": { "comum": "low", "riscoElevado": "medium", "semCodigo": "dispensado" },
   "limites": { "tentativasPorFamilia": 1, "correcoesPorFatia": 2, "rodadasCruzadasPorFatia": 2, "maxUltraAutomatico": false, "astraExecutor": false, "gptExtra": false },
   "indisponivel": "preservar capacidade e risco; sem parecer, etapa pendente",
+  "sessaoNova": { "familia": "opus", "esforco": "low", "regra": "toda sessao aberta por start_session (filha, proxima sessao, cartao), em qualquer nivel, N3 inclusive; nunca Sonnet; modelo explicito do usuário prevalece (usuário, 2026-11-11)" },
   "sessao": "modelo e esforco fixos durante a fatia; escalada em nova tentativa; contexto enxuto e sessao nova por fatia",
   "modelos": "sempre a versao mais nova de cada familia"
 }

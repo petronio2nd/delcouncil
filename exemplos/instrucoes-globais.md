@@ -36,6 +36,40 @@ Cole o que fizer sentido. Troque `<você>` pelo seu nome e ajuste os caminhos. E
 - Commit e push ao fim de cada etapa conferida (testes passando, revisão feita quando a skill
   `dupla` manda). Só os seus arquivos, listados por caminho no `git add` (nunca `-A`). Nada
   pessoal nem segredo no git. Push que dispara deploy em produção espera o OK de <você>.
+
+## Nome da sessão (app desktop; mods `status-nome` e `nome-sessao`)
+
+- <você> toca várias sessões ao mesmo tempo. Renomeie a própria sessão com `set_session_title`
+  (`session_id: "self"`, carregada via ToolSearch) ao fim de cada resposta em que o estado mudou, e
+  com ⚙️ no começo de um trabalho de mais de uns 2 minutos.
+- Formato: um emoji + espaço + texto em minúsculas, até 26 caracteres: `<assunto>: <ação ou resultado>`.
+  Se é a vez de <você>, a ação que vem primeiro; se terminou, o resultado.
+- Quando é a vez de <você>, o emoji diz o que espera (o 🔥 vale mais que os outros):
+  - 🔥 prazo em até 2 dias, com a data no texto: `🔥 relatório 28/09: revisar`
+  - 👍 só um OK a uma recomendação (sim ou não): `👍 ok p/ trocar a lib`
+  - ▶️ algo que só <você> pode rodar ou fazer (comando, clique, login): `▶️ deploy: rodar script`
+  - 📨 mandar mensagem a alguém, com o texto pronto: `📨 fornecedor: 3 perguntas`
+  - 📖 ler ou revisar o que foi preparado: `📖 revisar o relatório`
+  - 🧠 decidir ou responder o que só <você> sabe: `🧠 qual banco usar`
+  - 💤 pausada por <você>: `💤 site: parou no menu`
+- Quando não é a vez de <você>: ⚙️ trabalhando; 🤝 depende de outra pessoa, com o nome e o dia
+  (`🤝 ana 10/10: acesso`); ✅ concluída, mas vale deixar aberta; 🗄️ pode ser arquivada.
+
+## Mensagem final (mod `responder`)
+
+Monte a mensagem final de cada resposta nesta ordem:
+
+1. Primeira linha: o emoji do nome da sessão e, em uma frase, o essencial.
+2. Os detalhes: o que foi feito e achado, em até 5 itens, com link para os arquivos.
+3. Uma linha `---` e, por último, `**🔔 Sua vez 🔔**`, só quando algo depende de <você>: numerada na
+   ordem de fazer, um item por linha, cada um começando pelo emoji do tipo (🔥 👍 ▶️ 📨 📖 🧠).
+   - 👍 é sempre uma pergunta de sim ou não, com a recomendação na pergunta e a alternativa entre
+     parênteses: `👍 vou com a lib X? (não = Y)`. Escolha sem recomendação é 🧠.
+   - ▶️ traz o comando pronto e onde rodar; antes, veja se não dá para você mesmo fazer.
+   - 📨 traz para quem e o texto pronto para colar; 📖 o link do que ler; 🧠 a pergunta, curta.
+   - Aviso que muda a ação (apaga, grava em produção) vai dentro do item, com ⚠️.
+   - A **Sua vez** fecha a mensagem: nada depois dela.
+4. Quando nada depende de <você> (✅, 🗄️, ⚙️), não há **Sua vez**.
 ```
 
 > Estas linhas são a versão genérica das regras do autor. Se você preferir que o agente **pergunte** antes de commitar ou de despachar, troque os trechos "decida sozinho" e "commit e push" pela sua preferência: o método funciona com as duas.

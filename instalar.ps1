@@ -73,6 +73,8 @@ Write-Output '== Proximos passos (manuais, nada disto foi alterado)'
 Write-Output "1. Ajuste as familias de modelos em: $(Join-Path $raiz 'skills\orquestrador\politica-modelos.json')"
 Write-Output '2. Claude Code - mod orquestra: acrescente ao CLAUDE_CODE_PLUGIN_DIRS do ~/.claude/settings.json (separador ;):'
 Write-Output "     $(Join-Path $raiz 'mods\orquestra')"
+Write-Output '   Opcionais (jeito de conversar e medidores): status-nome, responder, session-band ou medidor, portugues, segredos, aguardar,'
+Write-Output "     na mesma pasta $(Join-Path $raiz 'mods'); o hook de nome da sessao esta em docs\instalacao.md (secao 4.1)."
 Write-Output '3. OpenCode - plugin gemeo: acrescente em "plugins" do ~/.config/opencode/opencode.json:'
 Write-Output "     $((Join-Path $raiz 'mods\gemeo') -replace '\\', '/')"
 Write-Output '4. Cole o que fizer sentido de exemplos\instrucoes-globais.md no seu CLAUDE.md / AGENTS.md.'

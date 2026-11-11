@@ -1,0 +1,5 @@
+{
+  "name": "segredos",
+  "version": "0.1.0",
+  "description": "Nunca mostra o conteúdo de arquivos de senha e chave; usar, gravar, copiar e mover continuam liberados"
+}

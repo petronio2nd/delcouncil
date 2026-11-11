@@ -1,6 +1,6 @@
 # Créditos e dependências
 
-O delcouncil é um conjunto de **skills, scripts e plugins escritos pelo autor** (histórico git do repositório de origem com um único autor; não identifiquei código copiado de terceiros). Ele **roda sobre** e **conversa com** projetos de outras pessoas e empresas, que merecem o crédito. Nada deles é redistribuído aqui.
+O delcouncil é um conjunto de **skills, scripts e plugins escritos pelo autor**, com **uma exceção**: o mod [`mods/session-band`](mods/session-band) é uma cópia adaptada do `session-band` 0.2.0 de [johnnyvizz/claude-kit](https://github.com/johnnyvizz/claude-kit/tree/main/plugins/session-band), sob licença MIT (Copyright (c) 2026 johnnyvizz). O texto da licença acompanha o mod em [`mods/session-band/LICENSE`](mods/session-band/LICENSE), e as mudanças estão no README dele. Fora isso, o delcouncil **roda sobre** e **conversa com** projetos de outras pessoas e empresas, que merecem o crédito; nada deles é redistribuído aqui.
 
 | Projeto | Autor / mantenedor | Como o delcouncil usa | Licença |
 |---|---|---|---|

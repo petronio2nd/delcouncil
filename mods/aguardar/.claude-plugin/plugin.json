@@ -1,0 +1,6 @@
+{
+  "name": "aguardar",
+  "version": "0.1.0",
+  "description": "Modo só aguarde: quando o usuário pede para não executar, trava tudo que muda algo até ele liberar",
+  "types": "./types/index.d.ts"
+}

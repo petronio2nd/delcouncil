@@ -73,6 +73,38 @@ Reinicie a sessão. Confira com `/orquestra` (abre o painel) e `/orquestra fonte
 
 > Se a política muda para uma versão que o mod carregado não entende, o `rotear_tarefa` **recusa** ("política inválida") até a sessão ser recarregada. É o comportamento seguro.
 
+### 4.1 Mods de conversa e medidores (opcionais)
+
+Independentes do método: dão ao Claude Code o jeito de conversar do autor. Ligue os que quiser no mesmo `CLAUDE_CODE_PLUGIN_DIRS`, um caminho por mod, separados por `;`:
+
+| Mod | O que faz | Precisa de |
+|---|---|---|
+| `status-nome` | Troca o emoji do nome da sessão sozinho: ⚙️ quando o turno começa, 🧠 quando o Claude pergunta ou pede aprovação, e no fim o nome que o Claude deu | app desktop; a seção "Nome da sessão" do exemplo de instruções |
+| `responder` | Lê os itens numerados da seção **Sua vez** da última resposta e mostra um campo para cada um, com **sim**/**não** nos itens 👍 e **rodei** nos ▶️; `/responder` abre e fecha | a seção "Mensagem final" do exemplo de instruções |
+| `session-band` | Faixa com turno, velocidade, custo, contagem do cache de 1 h, contexto e anéis de 5h e semana; avisa antes de o cache esfriar. `/session_data` mostra ou esconde | o aviso do sistema é só no macOS; no Windows a faixa funciona |
+| `medidor` | Linha de status com 5h, semana, contexto e cache, cada um com 🟢🟡🔴, e quanto falta para 5h e semana zerarem | escolha este **ou** o `session-band`: fazem o mesmo papel |
+| `portugues` | Põe "responda em português do Brasil" em todo turno e no resumo do `/compact` | Claude Code 2.1.293 ou mais novo |
+| `segredos` | Recusa Read, Grep e `cat`/`Get-Content` de `.env*`, `id_*`, `*.pem`, `*.key`, `*recovery-key*`, `credentials*` | limite: uma busca na pasta inteira, sem nomear o arquivo, ainda pode trazer linha de um `.env` |
+| `aguardar` | "não execute", "só aguarde", "me aguarde" travam as ferramentas que mudam algo; "pode seguir", "vamos começar", "está liberado" ou `/liberar` destravam | nada |
+
+O nome da sessão também tem um **hook de Stop** (não é mod): `mods/nome-sessao/exigir-nome.py`. No app desktop, se a sessão nunca foi renomeada, ele segura o fim do turno uma vez e pede ao Claude que dê o nome. No `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      { "matcher": "", "hooks": [
+        { "type": "command", "command": "python", "args": ["-I", "-X", "utf8", "C:\\caminho\\delcouncil\\mods\\nome-sessao\\exigir-nome.py"] }
+      ] }
+    ]
+  }
+}
+```
+
+Testes: `claude plugin test <mod>` na pasta `mods` (o `session-band` não tem suíte) e `python -I -X utf8 mods\nome-sessao\test_exigir_nome.py`.
+
+> Os textos dos mods falam em "o usuário" e seguem as convenções do exemplo de instruções (emojis da **Sua vez**, nome da sessão). Se você mudar as convenções, mude os dois juntos.
+
 ## 5. Plugin `gemeo` (OpenCode)
 
 No `~/.config/opencode/opencode.json`:

@@ -24,9 +24,16 @@ A revisão é feita por um modelo de **outra família** que o autor (Claude, GPT
 | [`skills/revisor`](skills/revisor) | Papel do revisor: só lê, devolve achados com severidade e evidência |
 | [`mods/orquestra`](mods/orquestra) | Mod do Claude Code: painel ao vivo das sessões e revisões, a ferramenta `rotear_tarefa`, aplicação da rota por fatia e a trava de fontes dentro do harness |
 | [`mods/gemeo`](mods/gemeo) | Plugin do OpenCode: dá ao OpenCode as ferramentas do Claude Code com os mesmos nomes, aplica a rota e respeita a trava |
+| [`mods/status-nome`](mods/status-nome) + [`mods/nome-sessao`](mods/nome-sessao) | O nome da sessão no app desktop diz onde ela parou: emoji do estado (⚙️ trabalhando, 🧠 espera você) trocado sozinho, e um hook que não deixa a sessão terminar sem nome |
+| [`mods/responder`](mods/responder) | Transforma a seção **Sua vez** da resposta em campos acima do prompt, com botões **sim**/**não** e **rodei**; envia tudo de uma vez |
+| [`mods/session-band`](mods/session-band) | Faixa acima do prompt: turno, tok/s, custo, cache, contexto e os anéis de uso de **5h e da semana** (adaptado de johnnyvizz, MIT) |
+| [`mods/medidor`](mods/medidor) | O mesmo em uma linha de status: `🟢 5h 14% · 🟡 sem 62% · 🟢 ctx 12% · 🟢 cache 42min · zera 3h10 / 4d`. Use este **ou** o session-band |
+| [`mods/portugues`](mods/portugues) | Responde sempre em português do Brasil, inclusive depois do `/compact` |
+| [`mods/segredos`](mods/segredos) | Recusa ler ou mostrar `.env*`, chaves (`id_*`, `*.pem`, `*.key`) e `credentials*`; usar e mover continua liberado |
+| [`mods/aguardar`](mods/aguardar) | "Não execute" ou "só aguarde" travam o Claude em modo leitura até "pode seguir" (ou `/aguardar` e `/liberar`) |
 | [`docs/metodo.md`](docs/metodo.md) | **O método explicado**: níveis, esforços, revisão, trava, orquestrador |
 | [`docs/instalacao.md`](docs/instalacao.md) | **Instalação** em outro usuário e outro computador, e como adaptar à sua assinatura |
-| [`exemplos/`](exemplos) | Trecho de instruções globais para o seu `CLAUDE.md` / `AGENTS.md` |
+| [`exemplos/`](exemplos) | Trecho de instruções globais para o seu `CLAUDE.md` / `AGENTS.md`, inclusive o jeito de conversar (nome da sessão, mensagem final com **Sua vez**) que os mods acima esperam |
 | [`instalar.ps1`](instalar.ps1) | Liga as skills nas pastas dos agentes (junction, sem administrador) e confere o ambiente |
 
 ## Instalar em 5 minutos

@@ -190,7 +190,7 @@ Exceção: a lista do OpenRouter (Muse), fixa e trocada à mão.
 | Papel | Quem | Modelo | Ferramenta | Serve para |
 |---|---|---|---|---|
 | 1 | Orquestradora | Opus no esforço N3; escalado N3 só quando ela mesma desenha ou decide algo difícil. Igual ou acima do que as filhas vão usar (o app ignora `model` mais caro que o da mãe) | esta sessão | ler, planejar, fatiar, despachar, conferir o diff e julgar a saída dos testes, `/code-review`, STATUS.md, commit e push, arquivar |
-| 2 | Sessão filha no app | Haiku no esforço N1: varredura, busca, inventário, só leitura. Sonnet no esforço N2: código fechado com testes, script, ajuste de escopo claro. Opus no esforço N3: conversor, desenho, migração, decisão técnica | `start_session` | fatia que rende mais separada (seção 2), com arquivos próprios; ela própria usa o nível 3 |
+| 2 | Sessão filha no app | **Sempre Opus, esforço `low`** (usuário, 2026-11-11: "o opus resolve muito melhor e mais rápido e com menos interação"; chave `sessaoNova` da política), em qualquer nível, N3 inclusive. Nunca Sonnet nem Haiku em sessão aberta. Modelo explícito do usuário prevalece | `start_session` | fatia que rende mais separada (seção 2), com arquivos próprios; ela própria usa o nível 3 |
 | 3 | Subagente da sessão (mãe ou filha) | Haiku ou Sonnet no esforço N1 ou N2 | `Agent` (`Explore`, `general-purpose`) | leituras, buscas e conferência mecânica (seção 5); nunca altera código, banco nem dado do projeto (só saída temporária) |
 | 4 | Executor | agy pelo `-Nivel` (Flash-Lite ou Flash, Claude Sonnet, Claude Opus, na cota Google): não roda comando, só lê e escreve; opencode com GPT (`openai/`: Luna, Terra, Sol; assinatura do ChatGPT) e opencode com Claude (`anthropic/`: Haiku, Sonnet, Opus, no crédito mensal da API): rodam comando e teste. Quem vai primeiro sai da fila pela folga (abaixo). Nunca o OpenRouter. O script escolhe o modelo e confere a cota e o crédito: `dupla`, seção 6 | `despachar.ps1 -Executor agy\|opencode` | tarefa fechada e testável, sem Docker nem rede |
 | 5 | Revisor e árbitro | Outra família que o autor, pelo `revisar.ps1 -Autor claude\|gpt\|gemini` (Claude → GPT Astra, reserva Gemini Argon; GPT → Gemini Argon, para poupar o Max; Gemini → GPT Astra; reserva Fable); esforço L1 ou L2 pelo nível calculado do risco; árbitro a terceira família, pela tabela da `dupla`, seção 3b (Muse Wonder pelo OpenRouter só quando a terceira é o GPT e o ChatGPT zerou): `dupla`, seções 0, 2 e 3b | `revisar.ps1` | revisão cruzada antes do commit, quando os critérios da `dupla` mandam |
@@ -260,8 +260,8 @@ na hora. Vencido, volta sozinho ao base. O `recursos.ps1` mostra o perfil em vig
 é ele que vale ao despachar, acima do perfil por julgamento, menos a economia automática, que só um
 perfil qualidade com prazo suspende. Sem argumento, o `perfil.ps1` só mostra o perfil.
 
-Vale sempre, com ou sem economia, e a orquestradora lembra o usuário quando vê o contrário: sessão de rotina
-que o usuário abre roda em Sonnet; assunto novo vai para sessão nova, porque sessão longa relê o contexto
+Vale sempre, com ou sem economia, e a orquestradora lembra o usuário quando vê o contrário: sessão aberta
+pela orquestradora roda em Opus esforço `low` (`sessaoNova`, usuário, 2026-11-11), também em economia; assunto novo vai para sessão nova, porque sessão longa relê o contexto
 inteiro a cada mensagem.
 
 ## 5. Chamadas prontas
@@ -271,8 +271,8 @@ projeto):
 
 ```
 initiation: "user_asked", context: "fresh", use_worktree: false,
-cwd: "<pasta do projeto>", model: "<id de Haiku, Sonnet ou Opus; omitido = o da mãe>",
-effort: "<esforço N1/N2 para Haiku e Sonnet, N3 para Opus, pelo perfil em vigor; um degrau acima só em nova tentativa; omitido = o da mãe>",
+cwd: "<pasta do projeto>", model: "opus" (sempre; `sessaoNova`, usuário, 2026-11-11),
+effort: "low" (sempre, N3 inclusive; um degrau acima só em nova tentativa),
 title: "⚙️ <assunto>: <ação>", name: "<projeto>-<assunto>", prompt: "<brief da seção 3>",
 background: "<o projeto, o que já foi decidido, como esta fatia encaixa>"
 ```
