@@ -80,7 +80,6 @@ Independentes do método: dão ao Claude Code o jeito de conversar do autor. Lig
 | Mod | O que faz | Precisa de |
 |---|---|---|
 | `status-nome` | Troca o emoji do nome da sessão sozinho: ⚙️ quando o turno começa, 🧠 quando o Claude pergunta ou pede aprovação, e no fim o nome que o Claude deu | app desktop; a seção "Nome da sessão" do exemplo de instruções |
-| `responder` | Lê os itens numerados da seção **Sua vez** da última resposta e mostra um campo para cada um, com **sim**/**não** nos itens 👍 e **rodei** nos ▶️; `/responder` abre e fecha | a seção "Mensagem final" do exemplo de instruções |
 | `session-band` | Faixa com turno, velocidade, custo, contagem do cache de 1 h, contexto e anéis de 5h e semana; avisa antes de o cache esfriar. `/session_data` mostra ou esconde | o aviso do sistema é só no macOS; no Windows a faixa funciona |
 | `medidor` | Linha de status com 5h, semana, contexto e cache, cada um com 🟢🟡🔴, e quanto falta para 5h e semana zerarem | escolha este **ou** o `session-band`: fazem o mesmo papel |
 | `portugues` | Põe "responda em português do Brasil" em todo turno e no resumo do `/compact` | Claude Code 2.1.293 ou mais novo |

@@ -55,7 +55,7 @@ Cole o que fizer sentido. Troque `<você>` pelo seu nome e ajuste os caminhos. E
 - Quando não é a vez de <você>: ⚙️ trabalhando; 🤝 depende de outra pessoa, com o nome e o dia
   (`🤝 ana 10/10: acesso`); ✅ concluída, mas vale deixar aberta; 🗄️ pode ser arquivada.
 
-## Mensagem final (mod `responder`)
+## Mensagem final
 
 Monte a mensagem final de cada resposta nesta ordem:
 
