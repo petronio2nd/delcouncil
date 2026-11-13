@@ -1,8 +1,18 @@
 # Instruções globais: trecho para o seu CLAUDE.md / AGENTS.md
 
-Cole o que fizer sentido. Troque `<você>` pelo seu nome e ajuste os caminhos. Este trecho é genérico; o texto completo das regras mora nas skills.
+Cole o que fizer sentido. Troque `<você>` pelo seu nome, `<repositórios>` e `<dados>` pelos caminhos das suas duas pastas ([instalação, 1.1](../docs/instalacao.md#11-duas-pastas-repositórios-e-dados)) e ajuste os demais caminhos. Este trecho é genérico; o texto completo das regras mora nas skills.
 
 ```markdown
+## Onde mora cada coisa
+
+- **Código** → `<repositórios>\<repo>`: só repositórios git, um por subpasta.
+- **Dados** → `<dados>\<área>`: documentos, relatórios, planilhas e análises, uma subpasta por área.
+  Nada daqui vai para o git.
+- No começo da sessão, se a pasta aberta não é a do pedido (ou a sessão abriu sem pasta), mova a
+  sessão para a pasta certa antes de agir e diga em uma linha de onde para onde: mexer em código →
+  `<repositórios>\<repo>`; ler, decidir ou gerar documento → `<dados>\<área>`. Não crie pasta nova
+  sem pedido de <você>.
+
 ## Agentes: orquestração e revisão
 
 - **Chaves globais de consumo.** Antes de chamar outro modelo, abrir sessão filha, usar subagente

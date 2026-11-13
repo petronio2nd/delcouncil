@@ -17,6 +17,24 @@ Guia para pôr o delcouncil em **outro usuário ou outro computador**. Tempo tí
 
 PowerShell 7, Linux e macOS: **não testados**. Se você os usar, abra uma issue de adaptação com o que mudou.
 
+### 1.1 Duas pastas: repositórios e dados
+
+O método precisa de **duas pastas de trabalho**, separadas, e **você passa o caminho das duas** ao agente (nas instruções globais, seção 7):
+
+| Pasta | O que guarda | Exemplo |
+|---|---|---|
+| **Repositórios** | só código versionado no git, um repositório por subpasta | `D:\REPOS\<repo>` |
+| **Dados** | o material de trabalho que não vai para o git (documentos, relatórios, planilhas, análises), uma subpasta por área | `D:\DADOS\<área>` (ex.: `carreira`, `financas`, `<cliente>`) |
+
+Por que separar:
+
+- **Git sem risco.** Na pasta de repositórios o agente pode fazer commit e push sem medo de levar dado pessoal; na de dados nada sai para fora, e o backup é outro.
+- **O agente escolhe a pasta pelo pedido.** Mexer em código abre a sessão em `<repositórios>\<repo>`; ler ou gerar documento, em `<dados>\<área>`. Projeto que tem os dois lados ganha uma subpasta em cada.
+- **Regras e memória por pasta.** Cada pasta tem o seu `CLAUDE.md`/`AGENTS.md` e o seu `STATUS.md`; sessão aberta na pasta certa não mistura o histórico de outro projeto.
+- **Nada na pasta temporária.** Sessão aberta sem pasta no app desktop cai numa pasta que some com a sessão; com os dois caminhos nas instruções, o agente move a sessão antes de trabalhar.
+
+Crie as duas pastas antes de seguir (os nomes são seus) e anote os caminhos: eles entram no trecho "Onde mora cada coisa" de [`exemplos/instrucoes-globais.md`](../exemplos/instrucoes-globais.md).
+
 ## 2. Clonar e ligar as skills
 
 ```powershell
@@ -153,7 +171,7 @@ O que **não** vai junto no `git clone`, por ser estado da máquina:
 | Logins (Claude, OpenCode, agy, ChatGPT) | cada CLI | faça login em cada um |
 | `STATUS.md` | raiz de **cada projeto seu** | nasce quando a `dupla` roda no projeto |
 
-Checklist: clonar → `instalar.ps1` → ajustar política → ligar mods → `fontes.ps1` lista as 5 fontes → suítes verdes → sessão nova.
+Checklist: criar as pastas de repositórios e de dados → clonar → `instalar.ps1` → ajustar política → ligar mods → `fontes.ps1` lista as 5 fontes → suítes verdes → sessão nova.
 
 ## 9. Atualizar
 
