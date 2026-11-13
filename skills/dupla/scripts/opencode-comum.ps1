@@ -17,9 +17,12 @@ catch { throw 'Controle de fontes indisponivel; consumo bloqueado.' }
 # Testado em 2026-10-24 (OpenCode 2.1.4).
 
 function Get-OpenCodeExe {
-  $oc = "$env:LOCALAPPDATA\Programs\@opencodedesktop\resources\opencode-cli.exe"
-  if (-not (Test-Path $oc)) { $oc = (Get-Command opencode -ErrorAction SilentlyContinue).Source }
-  $oc
+  # O instalador 2.3.0 (2026-11-13) usa Programs\ai.opencode.desktop; os anteriores, Programs\@opencodedesktop.
+  foreach ($pasta in 'ai.opencode.desktop', '@opencodedesktop') {
+    $oc = "$env:LOCALAPPDATA\Programs\$pasta\resources\opencode-cli.exe"
+    if (Test-Path $oc) { return $oc }
+  }
+  (Get-Command opencode -ErrorAction SilentlyContinue).Source
 }
 
 function Set-AmbienteOpenCode([string]$casa) {

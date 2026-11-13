@@ -133,10 +133,10 @@ No `~/.config/opencode/opencode.json`:
 Para o canal Antigravity você também precisa do plugin de login `opencode-antigravity-auth` (de terceiros, ver [CREDITOS.md](../CREDITOS.md)); o `gemeo` não o inclui. Confira a carga com:
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\@opencodedesktop\resources\opencode-cli.exe" api get /api/plugin
+& "$env:LOCALAPPDATA\Programs\ai.opencode.desktop\resources\opencode-cli.exe" api get /api/plugin
 ```
 
-(`data[].id` = `gemeo`, `state.status` = `active`.) O caminho do `opencode-cli` varia com a instalação.
+(`data[].id` = `gemeo`, `state.status` = `active`.) O caminho do `opencode-cli` varia com a instalação: os instaladores anteriores à 2.3.0 usavam `Programs\@opencodedesktop`.
 
 ## 6. Conferir
 

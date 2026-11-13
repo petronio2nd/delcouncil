@@ -55,7 +55,8 @@ $env:OPENCODE_CONFIG_DIR = $casa; $env:OPENCODE_DISABLE_PROJECT_CONFIG = '1'; $e
 $env:OPENCODE_DISABLE_AUTOUPDATE = '1'
 Get-ChildItem env: | Where-Object { $_.Name -match 'KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL' } | ForEach-Object { Remove-Item "Env:\$($_.Name)" }
 $modelo = (Get-Content "$casa\opencode.json" -Raw -Encoding UTF8 | ConvertFrom-Json).model
-$oc = "$env:LOCALAPPDATA\Programs\@opencodedesktop\resources\opencode-cli.exe"
+$oc = @("$env:LOCALAPPDATA\Programs\ai.opencode.desktop\resources\opencode-cli.exe",
+  "$env:LOCALAPPDATA\Programs\@opencodedesktop\resources\opencode-cli.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
 $fonteTeste = Get-FonteOpenCode $modelo
 if ($fonteTeste -eq 'desconhecida') { Write-Output 'Provedor invalido; teste nao executado.'; exit 2 }
 if (-not (Test-FonteConsumo $fonteTeste "$raiz\relatorio.md")) { Write-Output 'Fonte indisponivel; teste de permissoes nao executado.'; exit 3 }

@@ -17,6 +17,8 @@ import { aplicarRotaNova, esforcoDoModelo, lerRota, modeloDaRota } from "./rota.
 const COTA_CHATGPT = join(homedir(), ".local", "share", "dupla", "cota-chatgpt.json");
 // O SDK do plugin (2.1.4) descarta `archived` no session.update; o CLI faz o PATCH inteiro.
 const OPENCODE_CLI = [
+  // O instalador 2.3.0 usa ai.opencode.desktop; os anteriores, @opencodedesktop.
+  join(process.env.LOCALAPPDATA ?? join(homedir(), "AppData", "Local"), "Programs", "ai.opencode.desktop", "resources", "opencode-cli.exe"),
   join(process.env.LOCALAPPDATA ?? join(homedir(), "AppData", "Local"), "Programs", "@opencodedesktop", "resources", "opencode-cli.exe"),
   "opencode",
 ];
