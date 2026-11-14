@@ -138,6 +138,13 @@ Para o canal Antigravity você também precisa do plugin de login `opencode-anti
 
 (`data[].id` = `gemeo`, `state.status` = `active`.) O caminho do `opencode-cli` varia com a instalação: os instaladores anteriores à 2.3.0 usavam `Programs\@opencodedesktop`.
 
+Plugin `segredos` (recusa ler ou mostrar arquivo de senha e chave no read, grep, glob e shell, pelo nome do arquivo; o `dupla` exige que ele esteja em `~/.config/opencode/plugins/segredos.ts` antes de chamar o OpenCode):
+
+```powershell
+.\instalar.ps1 -OpenCode        # copia mods\segredos\opencode\segredos.ts; não sobrescreve arquivo diferente
+cd mods\segredos\opencode; node --test segredos.test.ts
+```
+
 ## 6. Conferir
 
 ```powershell

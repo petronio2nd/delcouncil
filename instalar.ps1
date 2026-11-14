@@ -4,12 +4,16 @@
 #   .\instalar.ps1                       # Claude Code + pasta comum ~/.agents
 #   .\instalar.ps1 -Cliente codex        # tambem ~/.codex/skills
 #   .\instalar.ps1 -Copiar               # copia em vez de junction
+#   .\instalar.ps1 -OpenCode             # tambem copia o plugin segredos para ~/.config/opencode/plugins
+#   .\instalar.ps1 -OpenCode -Forcar     # atualiza o plugin diferente, guardando a copia anterior (.bak-<epoch>)
 #   .\instalar.ps1 -SomenteVerificar     # nao liga nada
 #   .\instalar.ps1 -Casa C:\temp\casa    # instala em outra "home" (teste)
 param(
   [ValidateSet('claude', 'codex', 'todos')][string]$Cliente = 'claude',
   [switch]$Copiar,
   [switch]$SomenteVerificar,
+  [switch]$OpenCode,
+  [switch]$Forcar,
   [string]$Casa = ''
 )
 $ErrorActionPreference = 'Stop'
@@ -61,6 +65,32 @@ foreach ($pastaDestino in $destinos) {
   }
 }
 
+if ($OpenCode) {
+  Write-Output ''
+  Write-Output '== Plugin segredos do OpenCode'
+  $origemPlugin = Join-Path $raiz 'mods\segredos\opencode\segredos.ts'
+  $destinoPlugin = Join-Path $Casa '.config\opencode\plugins\segredos.ts'
+  if (-not (Test-Path -LiteralPath $origemPlugin)) { throw "Origem ausente: $origemPlugin" }
+  if (Test-Path -LiteralPath $destinoPlugin) {
+    if ((Get-FileHash -LiteralPath $origemPlugin).Hash -eq (Get-FileHash -LiteralPath $destinoPlugin).Hash) { Escreve '[ok]' "$destinoPlugin ja e igual ao do repositorio" }
+    elseif ($SomenteVerificar) { Escreve '[--]' "$destinoPlugin e diferente do repositorio (seria atualizado com -Forcar)" }
+    elseif ($Forcar) {
+      $copiaAntiga = "$destinoPlugin.bak-$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())"
+      for ($n = 1; Test-Path -LiteralPath $copiaAntiga; $n++) { $copiaAntiga = "$destinoPlugin.bak-$([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())-$n" }
+      Copy-Item -LiteralPath $destinoPlugin -Destination $copiaAntiga
+      Copy-Item -LiteralPath $origemPlugin -Destination $destinoPlugin -Force
+      Escreve '[ok]' "atualizado: $destinoPlugin (copia da versao anterior: $copiaAntiga)"
+    }
+    else { Escreve '[!!]' "$destinoPlugin ja existe e e diferente; nao sobrescrevi (use -Forcar para atualizar com copia da anterior)" }
+  }
+  elseif ($SomenteVerificar) { Escreve '[--]' "$destinoPlugin nao existe (seria copiado)" }
+  else {
+    New-Item -ItemType Directory -Force -Path (Split-Path $destinoPlugin) | Out-Null
+    Copy-Item -LiteralPath $origemPlugin -Destination $destinoPlugin
+    Escreve '[ok]' "copiado: $destinoPlugin (carrega na proxima sessao do OpenCode)"
+  }
+}
+
 Write-Output ''
 Write-Output '== Trava de fontes'
 $fontes = Join-Path $raiz 'skills\dupla\scripts\fontes.ps1'
@@ -90,7 +120,8 @@ Write-Output '2. Claude Code - mod orquestra: acrescente ao CLAUDE_CODE_PLUGIN_D
 Write-Output "     $(Join-Path $raiz 'mods\orquestra')"
 Write-Output '   Opcionais (jeito de conversar e medidores): status-nome, session-band ou medidor, portugues, segredos, aguardar,'
 Write-Output "     na mesma pasta $(Join-Path $raiz 'mods'); o hook de nome da sessao esta em docs\instalacao.md (secao 4.1)."
-Write-Output '3. OpenCode - plugin gemeo: acrescente em "plugins" do ~/.config/opencode/opencode.json:'
+Write-Output '3. OpenCode - o dupla exige o plugin segredos: rode .\instalar.ps1 -OpenCode (copia para ~/.config/opencode/plugins).'
+Write-Output '   Plugin gemeo: acrescente em "plugins" do ~/.config/opencode/opencode.json:'
 Write-Output "     $((Join-Path $raiz 'mods\gemeo') -replace '\\', '/')"
 Write-Output '4. Cole o que fizer sentido de exemplos\instrucoes-globais.md no seu CLAUDE.md / AGENTS.md.'
 Write-Output '5. Rode as suites de docs\instalacao.md (secao 6) e abra uma sessao nova do agente.'
