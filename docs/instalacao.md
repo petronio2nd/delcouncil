@@ -47,7 +47,7 @@ O `instalar.ps1`:
 
 - liga `orquestrador`, `dupla` e `revisor` por **junction** (sem administrador) em `~/.agents/skills` (pasta comum) e em `~/.claude/skills` (reserva); com `-Cliente codex`, também em `~/.codex/skills`;
 - **não sobrescreve** pasta que já exista; diz o que encontrou;
-- confere pré-requisitos e roda `fontes.ps1` para provar que a trava responde;
+- confere pré-requisitos e, se `%USERPROFILE%\.local\share\dupla\fontes.json` não existir, o **cria** pelo próprio `fontes.ps1 -Acao liberar -Fonte claude-max` (tudo liberado; idempotente, e arquivo existente nunca é tocado; sem isso o mod `orquestra` bloqueia todo consumo). Depois roda `fontes.ps1` para provar que a trava responde;
 - **não altera** `settings.json`, `opencode.json` nem seus arquivos de instruções: imprime os passos de 3 a 5 para você aplicar.
 
 Opções: `-Copiar` (copia em vez de junction, para não seguir `git pull`), `-Casa <pasta>` (instala em outra "home", útil para testar), `-SomenteVerificar`.
@@ -166,7 +166,7 @@ O que **não** vai junto no `git clone`, por ser estado da máquina:
 
 | Estado | Onde | Ação |
 |---|---|---|
-| Travas de fonte | `%USERPROFILE%\.local\share\dupla\fontes.json` | recomece liberado e trave o que quiser; **não copie** entre máquinas |
+| Travas de fonte | `%USERPROFILE%\.local\share\dupla\fontes.json` | o `instalar.ps1` cria o arquivo liberado; trave o que quiser; **não copie** entre máquinas |
 | Histórico de cotas e custo | `%TEMP%`/arquivos de `recursos.ps1` | recomeça sozinho |
 | Logins (Claude, OpenCode, agy, ChatGPT) | cada CLI | faça login em cada um |
 | `STATUS.md` | raiz de **cada projeto seu** | nasce quando a `dupla` roda no projeto |
@@ -181,6 +181,7 @@ Com junction, basta `git pull` na pasta clonada. Com `-Copiar`, rode `instalar.p
 
 | Sintoma | Causa provável |
 |---|---|
+| `Estado das fontes inválido ou ilegível` (mod `orquestra`) em máquina nova | falta o `fontes.json`: rode `instalar.ps1` de novo ou `skills\dupla\scripts\fontes.ps1 -Acao liberar -Fonte claude-max` |
 | `Controle de fontes indisponivel; consumo bloqueado` | `fontes-comum.ps1` não encontrado ou estado ilegível; **não** apague o `.lock`: corrija o estado pelo `fontes.ps1` |
 | `rotear_tarefa`: "política inválida" | mod carregado é mais antigo que a política; recarregue a sessão |
 | Teste de reservas falha com `FileNotFound` | rodado fora de um repositório git com commit |

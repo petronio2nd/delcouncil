@@ -64,9 +64,24 @@ foreach ($pastaDestino in $destinos) {
 Write-Output ''
 Write-Output '== Trava de fontes'
 $fontes = Join-Path $raiz 'skills\dupla\scripts\fontes.ps1'
-& powershell -NoProfile -ExecutionPolicy Bypass -File $fontes
-if ($LASTEXITCODE -ne 0) { Escreve '[!!]' 'fontes.ps1 saiu com erro; consumo fica BLOQUEADO ate o estado ser corrigido pelo proprio comando.' }
-else { Escreve '[ok]' 'fontes.ps1 responde (as fontes aparecem acima)' }
+$estadoFontes = Join-Path $Casa '.local\share\dupla\fontes.json'
+# O estado vive na home de quem roda; com -Casa o filho enxerga a home de teste, nunca a real.
+$salvaPerfil = $env:USERPROFILE; $salvaLocal = $env:LOCALAPPDATA
+$casaReal = ($salvaPerfil -and ([IO.Path]::GetFullPath($salvaPerfil) -eq [IO.Path]::GetFullPath($Casa)))
+if (-not $casaReal) { $env:USERPROFILE = $Casa; $env:LOCALAPPDATA = Join-Path $Casa 'AppData\Local' }
+try {
+  if (Test-Path -LiteralPath $estadoFontes) { Escreve '[ok]' "fontes.json ja existe; nao toquei: $estadoFontes" }
+  elseif ($SomenteVerificar) { Escreve '[--]' "fontes.json nao existe (seria criado liberado): $estadoFontes" }
+  else {
+    # Sem o arquivo o mod orquestra bloqueia tudo. 'liberar' e idempotente e cria arquivo e .lock.
+    & powershell -NoProfile -ExecutionPolicy Bypass -File $fontes -Acao liberar -Fonte claude-max | Out-Null
+    if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $estadoFontes)) { Escreve '[ok]' "fontes.json criado (tudo liberado): $estadoFontes" }
+    else { Escreve '[!!]' 'nao consegui criar o fontes.json; rode: fontes.ps1 -Acao liberar -Fonte claude-max' }
+  }
+  & powershell -NoProfile -ExecutionPolicy Bypass -File $fontes
+  if ($LASTEXITCODE -ne 0) { Escreve '[!!]' 'fontes.ps1 saiu com erro; consumo fica BLOQUEADO ate o estado ser corrigido pelo proprio comando.' }
+  else { Escreve '[ok]' 'fontes.ps1 responde (as fontes aparecem acima)' }
+} finally { $env:USERPROFILE = $salvaPerfil; $env:LOCALAPPDATA = $salvaLocal }
 
 Write-Output ''
 Write-Output '== Proximos passos (manuais, nada disto foi alterado)'
