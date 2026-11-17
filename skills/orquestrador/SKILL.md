@@ -23,6 +23,14 @@ Por quê: num caso real, um conversor, 43 tarefas agendadas e três revisões de
 depois que o usuário usou o sistema de destino por meia hora e preferiu o de origem. Cinco horas de
 orquestração polida sobre uma premissa que vinte minutos dele derrubaram.
 
+**Protótipo descartável** (do `prototype` de Matt Pocock, usuário 2026-11-17). Quando a coisa ainda não
+existe e o texto não decide (como a tela fica, se uma regra de estados faz sentido), a fatia 0 é um
+protótipo que responde **uma** pergunta: um HTML único que o usuário abre com dois cliques, ou variações de
+tela trocadas por um botão. Ele mostra o estado inteiro a cada ação, guarda tudo em memória, não tem
+teste nem acabamento e tem "protótipo" no nome. Roda no -lab quando precisa de servidor. Depois do
+veredito do usuário, a decisão vai para o critério de aceite da fatia seguinte, e o protótipo fica fora do
+`main` (pasta de rascunho ou branch própria) com a pergunta e o veredito registrados.
+
 Quando a premissa muda no meio (o sistema troca, o usuário muda o que quer), a fatia fecha: STATUS.md, commit e
 push, HANDOFF.md, sessão nova. Não atravesse a mudança na mesma sessão.
 
@@ -120,6 +128,22 @@ que o trabalho seja menor.
   0b); o relatório esperado no fim (o que mudou, como foi testado, o que o code-review achou, o que ficou
   em dúvida). Mesmo molde para a tarefa do executor (`despachar.ps1`), que roda sem o `/code-review`:
   nesse caso quem roda é a mãe.
+- **Fatia demonstrável, cobertura declarada** (usuário, 2026-11-17; da análise do Matt Pocock, `to-tickets`).
+  O critério de aceite de cada fatia é um efeito que se vê em uso ("importa o extrato e o saldo fecha"),
+  não um passo feito. Em trabalho em lote ou que atravessa sessões, o brief, o relatório da filha e o
+  STATUS.md trazem quatro linhas: **universo** (o que o critério alcança, com o número), **examinado** (o
+  que foi de fato lido ou feito, com o número; listar não é examinar), **fora** (o excluído e o motivo:
+  corte do usuário, falha, fora do critério) e **prova** (o que mostra que está pronto). "Concluída" vale só
+  no escopo combinado. Quando o usuário corta o escopo, o excluído deixa de ser pendência, mas não vira
+  examinado. Por quê: em 16/11/2026 (Codex, canal do Matt), a primeira entrega leu 8 de 319 vídeos e o
+  inventário cresceu sem separar listado de lido; o usuário teve de cobrar a abrangência duas vezes.
+- **Spec só quando atravessa sessões** (do `to-spec` de Matt Pocock, usuário 2026-11-17). Mudança que cabe
+  numa sessão vai do acordo da `sabatina` direto ao trabalho. Trabalho de várias fatias ou sessões ganha
+  um `SPEC.md` curto na raiz do projeto, escrito com o que já foi decidido, sem nova entrevista: problema
+  e solução do ponto de vista do usuário; decisões de desenho (módulos, contratos, formato do dado; um
+  trecho de código só quando um protótipo fixou a decisão melhor que a prosa); o que o teste confere e
+  em que ponto do sistema; fora do escopo. Sem caminho de arquivo, que envelhece rápido. O tamanho
+  acompanha a complexidade. Cada fatia aponta a parte do SPEC que ela entrega.
 - **O usuário fala só com a orquestradora.** Todo brief diz: "reporte à orquestradora; sem **Sua vez** e sem
   perguntas ao usuário; se ele escrever aqui, siga só o que a orquestradora repassar". Dúvida de produto vai no
   relatório, e a mãe leva ao usuário. Sessão aberta para responder a uma pergunta dele também devolve a resposta
@@ -243,8 +267,9 @@ Antes de despachar ou abrir filha, olhe as fontes, sem gastar nada:
   para ver que assinatura sobra, não para despachar: a fila continua sendo a do `recursos.ps1`.
 
 A semana já passada é `100 × (7 dias − o que falta para o reset semanal) / 7 dias`. Se o % usado da
-semana do Max ("Weekly · all models") passar dela, entre em **economia** até o reset: filha de rotina em
-Sonnet (Opus só para desenho ou decisão que o Sonnet não dá conta); tarefa fechada vai antes aos
+semana do Max ("Weekly · all models") passar dela, entre em **economia** até o reset: a economia fica no
+executor, não no modelo da filha (INS-07, 14/11/2026: a filha continua Opus `low`, linha 2 da tabela da
+seção 4); tarefa fechada vai antes aos
 executores fora do Claude Code (agy e opencode); revisão com `-Economia`. Exemplo de 22/10, 12h: 30%
 usados, 5d10h para o reset, semana passada 23%: economia. Fonte com folga (o crédito da API não acumula
 de um mês para o outro) pega o que a apertada largou.
@@ -396,7 +421,7 @@ revisão) é um mod, fora desta skill.
    como entrega concluída. Informe quem revisou de fato, inclusive quando foi a reserva. No máximo
    duas rodadas cruzadas por fatia. A camada GPT extra (`gpt-review.ps1`) está desativada (usuário,
    2026-11-03): não rode, nem como reserva.
-4. **STATUS.md do projeto.** Feito (com quem fez: "sessão filha no Sonnet; code-review sem achados;
+4. **STATUS.md do projeto.** Feito (com quem fez: "sessão filha no Opus low; code-review sem achados;
    L1 GPT Astra low aprovou sem achados"), Decisões, Pendências, Revisão cruzada.
 5. **Commit e push**, sem pedir 👍 (seção 1). O que passou pelos passos 1 a 4 vai para o `main` com
    push (em repositório de time, para a branch de trabalho); só os seus arquivos, por caminho. A mensagem de commit
@@ -438,6 +463,15 @@ revisão) é um mod, fora desta skill.
 Mensagem final no formato do CLAUDE.md global. Nos detalhes, uma linha por filha e por chamada a executor ou revisor:
 `- [título da filha](#local_<id>), esperado <modelo#esforço> | real <modelo#esforço> <⚠️ se diferem>: <o que entregou>; conferido <como>; <revisão: quem, veredito>`.
 Executor e revisor seguem o mesmo molde, com o real lido como na seção 5 ("real: não informado" no agy).
+Em trabalho em lote ou entre sessões, uma linha a mais, com os números da seção 3:
+`- Cobertura: universo <N> | examinado <N> | fora <N> (<motivo>) | prova: <o que mostra que está pronto>`.
+Entrega que roda (serviço, mod, hook, script agendado) traz a prova como uma linha por verificação (do
+`docker-practices` de Fabricio Veronez, usuário 2026-11-17):
+`- <nível: sobe, responde, reinicia, uso real...> | <passou | falhou | n/a | não executado> | <evidência>`.
+A evidência é o dado medido (`RestartCount=0 após 30s`, `HTTP 200 em 40 ms`), não um adjetivo ("estável").
+Nível que não se aplica entra como `n/a` com o motivo, e nível que não rodou entra como `não executado`
+com o motivo: nenhum some da lista, porque nível omitido é lido como aprovado. Teste pulado conta como
+não executado.
 Os commits (hash e o que entrou) ficam nos detalhes. Na **Sua vez**, só o que é do usuário: pergunta de
 produto que uma filha deixou vira 🧠, uma por linha, e ação externa vai com o emoji dela. Decisões que você tomou sozinha (abrir filha, revisar, nível) ficam nos detalhes, em uma
 linha, não na **Sua vez**.
