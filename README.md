@@ -22,6 +22,20 @@ A revisão é feita por um modelo de **outra família** que o autor (Claude, GPT
 | [`skills/orquestrador`](skills/orquestrador) | Skill da sessão que recebe o pedido: fatia o trabalho, escolhe nível e executor, confere e registra |
 | [`skills/dupla`](skills/dupla) | Skill e scripts PowerShell: revisão cruzada, reservas por falta de cota, executores (agy, OpenCode) e a **trava de fontes** |
 | [`skills/revisor`](skills/revisor) | Papel do revisor: só lê, devolve achados com severidade e evidência |
+| [`skills/1-simulador`](skills/1-simulador) | Questiona pressupostos, identifica riscos e testa uma decisão antes do compromisso |
+| [`skills/2-destilador`](skills/2-destilador) | Organiza notas e transcrições em temas, decisões e questões em aberto |
+| [`skills/3-protocolo`](skills/3-protocolo) | Transforma decisões tomadas em procedimentos e checklists executáveis |
+| [`skills/4-intencao`](skills/4-intencao) | Interpreta a intenção de uma mensagem e ajuda a comunicá-la ao destinatário |
+| [`skills/sabatina`](skills/sabatina) | Conduz uma entrevista curta para acertar escopo e critérios de aceite antes de construir |
+| [`skills/dev-debug`](skills/dev-debug) | Investiga a causa de um defeito com hipóteses verificáveis e uma reprodução mínima |
+| [`skills/ub-mode`](skills/ub-mode) | Orienta mudanças de código com um teste que reproduz o problema e comprova a correção |
+| [`skills/esforco`](skills/esforco) | Consulta e ajusta os pisos de esforço usados na execução e na revisão |
+| [`skills/validar-metas`](skills/validar-metas) | Verifica se uma meta tem medida, prazo e critério de sucesso |
+| [`skills/status-report`](skills/status-report) | Gera versões técnica, gerencial e executiva de um relatório a partir dos mesmos dados |
+| [`skills/iniciar-analise`](skills/iniciar-analise) | Organiza análises documentais longas com checkpoints, fontes e limites de cobertura |
+| [`skills/agendar-retomada`](skills/agendar-retomada) | Prepara o contexto e o primeiro passo para retomar uma conversa em outra sessão |
+| [`skills/ata-reuniao`](skills/ata-reuniao) | Extrai decisões e compromissos de uma transcrição com responsáveis e prazos quando declarados |
+| [`skills/detector-repeticao`](skills/detector-repeticao) | Identifica pedidos e correções recorrentes e propõe melhorias com exemplos |
 | [`mods/orquestra`](mods/orquestra) | Mod do Claude Code: painel ao vivo das sessões e revisões, a ferramenta `rotear_tarefa`, aplicação da rota por fatia e a trava de fontes dentro do harness |
 | [`mods/gemeo`](mods/gemeo) | Plugin do OpenCode: dá ao OpenCode as ferramentas do Claude Code com os mesmos nomes, aplica a rota e respeita a trava |
 | [`mods/status-nome`](mods/status-nome) + [`mods/nome-sessao`](mods/nome-sessao) | O nome da sessão no app desktop diz onde ela parou: emoji do estado (⚙️ trabalhando, 🧠 espera você) trocado sozinho, e um hook que não deixa a sessão terminar sem nome |
@@ -44,6 +58,8 @@ powershell -ExecutionPolicy Bypass -File .\instalar.ps1
 ```
 
 Depois siga o [guia de instalação](docs/instalacao.md): ligar os mods, ajustar a política ao que você assina e conferir a trava com `fontes.ps1`.
+
+O instalador liga as três skills de orquestração. Para usar uma das 14 skills de método da tabela, copie a pasta dela de `skills/` para o diretório de skills do seu agente.
 
 ## Estado e limites (leia antes de adotar)
 

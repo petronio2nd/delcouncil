@@ -1,6 +1,8 @@
 # Créditos e dependências
 
-O delcouncil é um conjunto de **skills, scripts e plugins escritos pelo autor**, com **uma exceção**: o mod [`mods/session-band`](mods/session-band) é uma cópia adaptada do `session-band` 0.2.0 de [johnnyvizz/claude-kit](https://github.com/johnnyvizz/claude-kit/tree/main/plugins/session-band), sob licença MIT (Copyright (c) 2026 johnnyvizz). O texto da licença acompanha o mod em [`mods/session-band/LICENSE`](mods/session-band/LICENSE), e as mudanças estão no README dele. Fora isso, o delcouncil **roda sobre** e **conversa com** projetos de outras pessoas e empresas, que merecem o crédito; nada deles é redistribuído aqui.
+O mod [session-band](mods/session-band) adapta a versão 0.2.0 de [johnnyvizz/claude-kit](https://github.com/johnnyvizz/claude-kit/tree/main/plugins/session-band), sob licença MIT. O mod inclui a [licença original](mods/session-band/LICENSE) e descreve as mudanças no seu README.
+
+A skill [ub-mode](skills/ub-mode) adapta o trabalho de Robert C. Martin e inclui a [licença original](skills/ub-mode/LICENSE). As skills `sabatina`, `dev-debug` e `detector-repeticao` usam métodos do [acervo de Matt Pocock](https://github.com/mattpocock/skills). A esses materiais se aplica o texto da [licença MIT](LICENSE), com o aviso original “Copyright (c) 2026 Matt Pocock”.
 
 | Projeto | Autor / mantenedor | Como o delcouncil usa | Licença |
 |---|---|---|---|

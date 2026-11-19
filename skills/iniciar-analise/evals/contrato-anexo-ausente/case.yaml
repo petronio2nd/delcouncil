@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: contrato-anexo-ausente
+expected_outcome: |
+  Preservar o prazo de 12 dias após aceite formal e o efeito limitado do aditivo.
+  Distinguir minuta, alegação de instalação e aceite demonstrado. Mostrar a falta
+  do anexo IV na matriz com versão/cláusula, sem calcular datas ou redigir cobrança.
