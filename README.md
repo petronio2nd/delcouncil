@@ -53,6 +53,10 @@ Depois siga o [guia de instalação](docs/instalacao.md): ligar os mods, ajustar
 - As skills guardam decisões do autor com data (`usuário, 2026-10-19: ...`). São o histórico do porquê de cada regra: mude a regra se o seu uso pedir.
 - Os testes são parte do repositório (`skills/dupla/scripts/testar-*.ps1`, `mods/*/**/*.test.ts`). Rode-os depois de mudar a política.
 
+## Projetos irmãos
+
+- **[pepita-wa-pub](https://github.com/petronio2nd/pepita-wa-pub)**: extensão do Chrome e servidor local que exportam o WhatsApp Web para Markdown, com áudio transcrito e OCR, e um MCP (`whatsapp`) para o Claude Code e o OpenCode listarem, lerem e responderem conversas com aprovação. Instala em outro Windows pelo roteiro `docs/instalar-outro-computador.md` de lá. Repositório à parte porque automatiza o WhatsApp Web: leia o aviso de termos de uso no README dele.
+
 ## Achou uma falha? Tem uma ideia?
 
 Abra uma [issue](../../issues): há modelos para **falha**, **melhoria** e **adaptação** (outro sistema, outros modelos). Veja o [CONTRIBUTING.md](CONTRIBUTING.md). Pull requests são bem-vindos; mudança de política precisa vir com o teste.
