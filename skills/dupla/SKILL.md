@@ -146,6 +146,10 @@ custo é de cota, não do usuário: na dúvida entre revisar e perguntar, revise
 - **Configuração e código inativo descem um degrau.** Item novo numa lista, caminho ou parâmetro conhecido
   desce um nível, e o código candidato que ainda não roda em produção (inativo até um OK do usuário) também.
   O L2 fica para a publicação ou a ativação. Documentação e linha de `STATUS.md` são L0.
+- **Documento oficial que vai à assinatura sobe a L1** (usuário, 14/11/2026; INS-11). Despacho, ofício,
+  memorando, termo ou peça que alguém vai assinar ou protocolar é texto, mas não é L0: depois de
+  assinado não se desfaz aqui dentro. O script não vê isso pelo diff, então passe `-Nivel L1`. Rascunho
+  para o usuário ler e nota interna continuam L0.
 - **Delta depois de uma rodada:** a correção pequena dos achados ou o ajuste da mesma entrega (até umas 30
   linhas, sem mudar o desenho) vai só ao `/code-review` no delta, sem rodada nova de outra família. Só abre
   rodada nova se o delta mudar o desenho ou corrigir um `bloqueia` (seção 3).
@@ -200,6 +204,9 @@ português, com:
 - **Diff:** cole no fim do pacote a saída do `git diff` (ou o conteúdo dos arquivos novos). O revisor
   `claude` não roda comando nenhum, só lê arquivos do projeto; o `gpt` e o `gemini` também ganham tempo
   com isso. Se passar de umas 1.500 linhas, divida a revisão em partes.
+- **Padrões:** as regras que o eixo de padrões do revisor confere (skill `revisor`, "Dois eixos"),
+  copiadas ou apontadas: `ub-mode` quando há código, as convenções do repositório, a regra do CLAUDE.md
+  que a entrega toca. Sem padrão que se aplique, escreva "nenhum".
 - **Dieta:** além do diff, só o pedido, o critério de aceite e as linhas do `STATUS.md` que importam
   (Decisões e Revisão cruzada da etapa). O revisor abre o resto sob demanda.
 - **Já conferido:** testes e comandos que você rodou, com o resultado.
@@ -343,8 +350,14 @@ Atualizado: <aaaa-mm-dd hh:mm> por <Claude Code | OpenCode> (<família do modelo
 
 ## Revisão cruzada
 <sempre | sempre para: <escopo> | por julgamento>
-- <aaaa-mm-dd> <nível> <família e modelo do revisor> revisou <o quê>: <veredito>; <n> aceitos, <n> recusados (<motivo curto>)[; árbitro <família>: <n> autor, <n> revisor, <n> usuário]
+- <aaaa-mm-dd> <nível> <família e modelo do revisor> revisou <o quê>: <veredito> (pedido: <eixo>; padrões: <eixo>); <n> aceitos, <n> recusados (<motivo curto>)[; árbitro <família>: <n> autor, <n> revisor, <n> usuário]
 ```
+
+Em **Decisões** entra só o que tem as três marcas (do `domain-modeling` de Matt Pocock, usuário
+2026-11-17): **difícil de desfazer**, **estranho sem contexto** (quem chegar depois vai perguntar "por que
+assim?") e **fruto de uma troca real** (havia alternativa e ela perdeu por um motivo). Falta uma marca: o
+motivo fica na mensagem de commit. Termo do projeto com dois sentidos, que já confundiu uma sessão, entra
+também, como `<termo>: <o que significa aqui> (não confundir com <outro>)`.
 
 Exemplo da linha: `- 2026-10-24 L1 GPT Astra low revisou o conversor OFX: aprovado com correções; 2
 aceitos, 1 recusado (já tratado no STATUS)`. O nível e os achados aceitos ficam na linha para calibrar a
@@ -371,7 +384,8 @@ fica no ai-memory e no git.
 
 ## 5. Contar ao usuário
 
-Na mensagem final, nos detalhes: o veredito, o que foi corrigido e o que foi recusado, com o motivo.
+Na mensagem final, nos detalhes: o veredito, com os dois eixos (pedido e padrões) em separado, o que
+foi corrigido e o que foi recusado, com o motivo.
 O que ficou para o usuário decidir vai para a **Sua vez**. Não cole a revisão inteira.
 
 ## 6. Subagente executor (o agy ou o opencode faz, você revisa)

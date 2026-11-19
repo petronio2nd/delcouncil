@@ -5,7 +5,8 @@
 # Revisor e árbitro só têm três ferramentas de leitura. Fazer também grava e edita arquivos,
 # sempre presos à pasta do projeto, sem rodar comando. Arquivos de segredo (.env, chaves,
 # credenciais) e a pasta .git ficam de fora, porque o conteúdo sai do computador.
-# A chave vem de OPENROUTER_API_KEY (do processo ou do usuário, gravada com setx). Nunca vai para o log.
+# A chave vem do 1Password (`op read op://Dev/OpenRouter/credential`); de reserva, de OPENROUTER_API_KEY
+# (do processo ou do usuário, gravada com setx). Nunca vai para o log.
 
 param(
   [Parameter(Mandatory)][string]$Pasta,
@@ -29,9 +30,17 @@ Add-Type -AssemblyName System.Net.Http
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = $utf8
 
-$chave = $env:OPENROUTER_API_KEY
+# Chave: 1Password (op read) primeiro; se o op falhar ou não estiver instalado/desbloqueado, cai na variável de ambiente.
+$chave = $null
+if (-not $env:OPENROUTER_SEM_OP -and (Get-Command op -ErrorAction SilentlyContinue)) {
+  try {
+    $lida = & op read 'op://Dev/OpenRouter/credential' 2>$null
+    if ($LASTEXITCODE -eq 0 -and $lida) { $chave = ([string]($lida -join '')).Trim() }
+  } catch { $chave = $null }
+}
+if (-not $chave) { $chave = $env:OPENROUTER_API_KEY }
 if (-not $chave) { $chave = [Environment]::GetEnvironmentVariable('OPENROUTER_API_KEY', 'User') }
-if (-not $chave) { [Console]::Error.WriteLine('OPENROUTER_API_KEY não definida (setx OPENROUTER_API_KEY "<chave>")'); exit 1 }
+if (-not $chave) { [Console]::Error.WriteLine('Chave do OpenRouter indisponivel (op read falhou e OPENROUTER_API_KEY não definida)'); exit 1 }
 
 $raiz = (Resolve-Path $Pasta).Path.TrimEnd('\')
 $segredo = '(?i)(^|\\)(\.git(\\|$)|\.env[^\\]*$|[^\\]*\.(pem|key|pfx|p12|kdbx)$|id_(rsa|ed25519)[^\\]*$|[^\\]*(credential|secret|token)[^\\]*$)'
